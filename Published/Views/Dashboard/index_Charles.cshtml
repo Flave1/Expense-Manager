@@ -1,0 +1,447 @@
+﻿@model JetScholarshipPortalHelper.APIObjs.DashboardStatHelperObj
+@{
+    ViewBag.Title = "Application Statistics";
+    ViewBag.PgTitle = "Application Statistics";
+}
+
+<style>
+    .stylish-color {
+        background-color: #4B515D;
+    }
+
+    .primaryb-color {
+        background-color: #4285F4;
+    }
+
+    .success-color {
+        background-color: #00C851;
+    }
+
+    .success-color-dark {
+        background-color: #007E33;
+    }
+
+    .warning-color-dark {
+        background-color: #FF8800;
+    }
+
+    .grey-darken-1 {
+        background-color: #757575;
+    }
+
+    .brown-darken-1 {
+        background-color: #6d4c41;
+    }
+</style>
+
+<div class="page-body">
+    <div class="row">
+        <div class="col-md-12 col-xl-4">
+            <h6><i class="icofont icofont-user-male text-success"></i> Personal Info</h6>
+            <div class="card table-card">
+                <div class="">
+                    <div class="row-table">
+                        <div class="col-sm-6 card-block-big card-block-sm br">
+                            <div class="row">
+                                <div class="col-sm-12 text-center">
+                                    <h5>
+                                        @Model.AppStageStat.BiodataCount
+                                    </h5>
+                                    <span>Bio-Data</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 card-block-big card-block-sm">
+                            <div class="row">
+                                <div class="col-sm-12 text-center">
+                                    <h5>
+                                        @Model.AppStageStat.PDetailCount
+                                    </h5>
+                                    <span>Personal Details</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="">
+                    <div class="row-table">
+                        <div class="col-sm-6 card-block-big card-block-sm br">
+                            <div class="row">
+                                <div class="col-sm-12 text-center">
+                                    <h5>
+                                        @Model.AppStageStat.PassportCount
+                                    </h5>
+                                    <span>Passports</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 card-block-big card-block-sm">
+                            <div class="row">
+                                <div class="col-sm-12 text-center">
+                                    <h5>
+                                        @Model.AppStageStat.NYSCCount
+                                    </h5>
+                                    <span>NYSC</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12 col-xl-4">
+            <h6><i class="icofont icofont-graduate text-info"></i> Education</h6>
+            <div class="card table-card">
+                <div class="">
+                    <div class="row-table">
+                        <div class="col-sm-6 card-block-big card-block-sm br">
+                            <div class="row">
+                                <div class="col-sm-12 text-center">
+                                    <h5>
+                                        @Model.AppStageStat.OlevelCount
+                                    </h5>
+                                    <span>O' Level</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 card-block-big card-block-sm">
+                            <div class="row">
+                                <div class="col-sm-12 text-center">
+                                    <h5>
+                                        @Model.AppStageStat.HigherLevelCount
+                                    </h5>
+                                    <span>Tertiary</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @*<div class="">
+                        <div class="row-table">
+                            <div class="col-sm-6 card-block-big card-block-sm br">
+                                <div class="row ">
+                                    <div class="col-sm-12 text-center">
+                                        <h5>
+                                            @Model.AppStageStat.ProfessionalCount
+                                        </h5>
+                                        <span>Professional</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 card-block-big card-block-sm">
+                                <div class="row ">
+                                    <div class="col-sm-12 text-center">
+                                        <h5>
+                                            @Model.AppStageStat.AwardCount
+                                        </h5>
+                                        <span>Awards</span>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>*@
+            </div>
+            <!-- table card end -->
+        </div>
+        <div class="col-md-12 col-xl-4">
+            <h6><i class="icofont icofont-certificate text-danger"></i> Experience</h6>
+            <div class="card table-card">
+                @*<div class="">
+                        <div class="row-table">
+                            <div class="col-sm-6 card-block-big card-block-sm br">
+                                <div class="row">
+                                    <div class="col-sm-12 text-center">
+                                        <h5>
+                                            @Model.AppStageStat.LeadershipCount
+                                        </h5>
+                                        <span>Leadership</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 card-block-big card-block-sm">
+
+                                <div class="row ">
+                                    <div class="col-sm-12 text-center">
+                                        <h5>
+                                            @Model.AppStageStat.VolunteerCount
+                                        </h5>
+                                        <span>Volunteer</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>*@
+                <div class="">
+                    <div class="row-table">
+                        <div class="col-sm-6 card-block-big card-block-sm br">
+                            <div class="row">
+                                <div class="col-sm-12 text-center">
+                                    <h5>
+                                        @Model.AppStageStat.WorkExpCount
+                                    </h5>
+                                    <span>Work Exp.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 card-block-big card-block-sm">
+                            <div class="row">
+                                <div class="col-sm-12 text-center">
+                                    <h5>
+                                        @Model.AppStageStat.SubmissionCount
+                                    </h5>
+                                    <span>Submitted</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- table card end -->
+
+        </div>
+
+        <div class="col-sm-12 card-block-big card-block-sm">
+            <h6 style="padding-left:10px;">Statistics By Gender & Region</h6>
+        </div>
+        <div class="col-md-6 col-xl-2">
+            <div class="card social-widget-card">
+                <div class="card-block-big stylish-color" style="padding:0.9em;">
+                    <h3>
+                        @Model.AppGenderStat.MaleCount
+                    </h3>
+                    <span class="m-t-5">Male</span>
+                    <span><img src="~/Content/assets/images/male.svg" width="31" style="float:right;" /></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-2">
+            <div class="card social-widget-card">
+                <div class="card-block-big stylish-color" style="padding:0.9em;">
+                    <h3>
+                        @Model.AppGenderStat.FemaleCount
+                    </h3>
+                    <span class="m-t-5">Female</span>
+                    <span><img src="~/Content/assets/images/female.svg" width="31" style="float:right;" /></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-2">
+            <div class="card social-widget-card">
+                <div class="card-block-big grey-darken-1" style="padding:0.9em;">
+                    <h3>
+                        @Model.AppCountryStat.NaijaCount
+                    </h3>
+                    <span class="m-t-5">Nigerians</span>
+                    <span><img src="~/Content/assets/images/nigeria.svg" width="31" style="float:right;" /></span>
+                </div>
+            </div>
+        </div>
+        @*<div class="col-md-6 col-xl-2">
+                <div class="card social-widget-card">
+                    <div class="card-block-big grey-darken-1" style="padding: 0.9em;">
+                        <h3>
+                            @Model.AppCountryStat.GhanaCount
+                        </h3>
+                        <span class="m-t-5">Ghanians</span>
+                        <span><img src="~/Content/assets/images/ghana.svg" width="31" style="float:right;" /></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-2">
+                <div class="card social-widget-card">
+                    <div class="card-block-big grey-darken-1" style="padding:0.9em;">
+                        <h3>
+                            @Model.AppCountryStat.OthersCount
+                        </h3>
+                        <span class="m-t-5">UnClassified</span>
+                        <span><img src="~/Content/assets/images/classified.svg" width="31" style="float:right;" /></span>
+                    </div>
+                </div>
+            </div>*@
+
+        <div class="col-md-6 col-xl-2">
+            <div class="card social-widget-card">
+                <div class="card-block-big success-color" style="padding:0.9em;">
+                    <h3>
+                        @(Model.AppGenderStat.MaleCount + Model.AppGenderStat.FemaleCount)
+                    </h3>
+                    <span class="m-t-5">Total</span>
+                    <span><img src="~/Content/assets/images/total-users-s.svg" width="31" style="float:right;" /></span>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        @*<div class="col-sm-12 card-block-big card-block-sm">
+                <h6 style="padding-left:10px;">Statistics By Application Source</h6>
+            </div>
+            <div class="col-md-6 col-xl-2">
+                <div class="card social-widget-card">
+                    <div class="card-block-big stylish-color" style="padding:0.9em;">
+                        <h3>
+                            @Model.AppSourceStat.RegularCount
+                        </h3>
+                        <span class="m-t-5">Direct</span>
+                        <span><img src="~/Content/assets/images/direct.svg" width="31" style="float:right;" /></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-2">
+                <div class="card social-widget-card">
+                    <div class="card-block-big stylish-color" style="padding:0.9em;">
+                        <h3>
+                            @(Model.AppSourceStat.AcceptNomCount + Model.AppSourceStat.RejectNomCount + Model.AppSourceStat.NoRespNomCount )
+                        </h3>
+                        <span class="m-t-5">Nominated</span>
+                        <span><img src="~/Content/assets/images/nominate.svg" width="31" style="float:right;" /></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-2">
+                <div class="card social-widget-card">
+                    <div class="card-block-big grey-darken-1" style="padding:0.9em;">
+                        <h3>
+                            @Model.AppSourceStat.AcceptNomCount
+                        </h3>
+                        <span class="m-t-5">Accepted</span>
+                        <span><img src="~/Content/assets/images/approved.svg" width="31" style="float:right;" /></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-2">
+                <div class="card social-widget-card">
+                    <div class="card-block-big grey-darken-1" style="padding: 0.9em;">
+                        <h3>
+                            @Model.AppSourceStat.RejectNomCount
+                        </h3>
+                        <span class="m-t-5">Declined</span>
+                        <span><img src="~/Content/assets/images/decline.svg" width="31" style="float:right;" /></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-2">
+                <div class="card social-widget-card">
+                    <div class="card-block-big grey-darken-1" style="padding:0.9em;">
+                        <h3>
+                            @Model.AppSourceStat.NoRespNomCount
+                        </h3>
+                        <span class="m-t-5">No Response</span>
+                        <span><img src="~/Content/assets/images/no-response.svg" width="31" style="float:right;" /></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-2">
+                <div class="card social-widget-card">
+                    <div class="card-block-big success-color" style="padding:0.9em;">
+                        <h3>
+                            @(Model.AppSourceStat.RegularCount + Model.AppSourceStat.AcceptNomCount + Model.AppSourceStat.RejectNomCount + Model.AppSourceStat.NoRespNomCount)
+                        </h3>
+                        <span class="m-t-5">Total</span>
+                        <span><img src="~/Content/assets/images/analysis.svg" width="31" style="float:right;" /></span>
+                    </div>
+                </div>
+            </div>*@
+
+
+
+        <div class="col-sm-12 card-block-big card-block-sm">
+            <h6 style="padding-left:10px;">Application By Source</h6>
+        </div>
+        <div class="col-lg-4">
+            <!-- widget primary card start -->
+            @*<div class="card table-card widget-primary-card" style="margin-bottom: 5px !important;">
+                    <div class="">
+                        <div class="row-table">
+                            <div class="col-sm-3 card-block-big">
+                                <i class="icofont icofont-male"></i>
+                            </div>
+                            <div class="col-sm-9">
+                                <h4>
+                                    @Model.AppSourceStat.RegularCount
+                                </h4>
+                                <h6>Direct Applications</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card table-card widget-success-card">
+                    <div class="">
+                        <div class="row-table">
+                            <div class="col-sm-3 card-block-big">
+                                <i class="icofont icofont-female"></i>
+                            </div>
+                            <div class="col-sm-9">
+                                <h4>
+                                    @Model.AppSourceStat.NominatedCount
+                                </h4>
+                                <h6>Nominated Applications</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+            <div class="card table-card widget-success-card" style="margin-bottom: 5px !important;">
+                <div class="">
+                    <div class="row-table">
+                        <div class="col-sm-3 card-block-big">
+                            <i class="icofont icofont-web"></i>
+                        </div>
+                        <div class="col-sm-9">
+                            <h4>
+                                @Model.AppChannelStat.WebCount
+                            </h4>
+                            <h6>WEB Channel</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card table-card widget-primary-card">
+                <div class="">
+                    <div class="row-table">
+                        <div class="col-sm-3 card-block-big">
+                            <i class="icofont icofont-smart-phone"></i>
+                        </div>
+                        <div class="col-sm-9">
+                            <h4>
+                                @Model.AppChannelStat.MobileCount
+                            </h4>
+                            <h6>MOBILE Channel</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+
+    <script src="~/Content/assets/js/d3/d3.js"></script>
+    <script src="~/Content/assets/js/rickshaw/rickshaw.js"></script>
+    <!-- Morris Chart js -->
+    <script src="~/Content/assets/js/raphael/raphael.min.js"></script>
+    <script src="~/Content/assets/js/morris/morris.js"></script>
+    <!-- Horizontal-Timeline js -->
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/horizontal-timeline/js/main.js"></script>
+
+
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/horizontal-timeline/js/main.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/amcharts.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/serial.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/light.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/custom-amchart.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/custom-amchart.js"></script>
+
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/custom-dashboard.js"></script>
+}
+

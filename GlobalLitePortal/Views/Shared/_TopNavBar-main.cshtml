@@ -1,0 +1,56 @@
+﻿@using GlobalLitePortal.PortalCore.Model
+@{
+    var userData = MvcApplication.GetUserData(User.Identity.Name) ?? new UserData();
+}
+<div>
+    <ul class="nav-left">
+        <li>
+            <div class="sidebar_toggle"><a href="javascript:void(0)"><i class="ti-menu"></i></a></div>
+        </li>
+    </ul>
+    <ul class="nav-right">
+        @*<li class="header-notification">
+            <a href="#!">
+                <i class="ti-bell"></i>
+                <span class="badge">0</span>
+            </a>
+            
+        </li>
+        <li class="header-notification">
+            <a href="#!" class="displayChatbox">
+                <i class="ti-comments"></i>
+                <span class="badge">0</span>
+            </a>
+        </li>*@
+        <li class="user-profile header-notification">
+            <a href="#!">
+                <img src="~/Content/assets/images/user.png" alt="User-Profile-Image">
+                <span>@userData.Email</span>
+                <i class="ti-angle-down"></i>
+            </a>
+            <ul class="show-notification profile-notification">
+                <li>
+                    <a href="@Url.Action("MyProfile", "Portal")">
+                        <i class="ti-user"></i> My Profile
+                    </a>
+                </li>
+                @*<li>
+                    <a href="email-inbox.html">
+                        <i class="ti-email"></i> My Messages
+                    </a>
+                </li>*@
+                <li>
+                    <a href="@Url.Action("ChangeUserPassword", "Portal")" data-modal="">
+                        <i class="ti-lock"></i> Change Password
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Index", "SignOut")">
+                        <i class="ti-layout-sidebar-left"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    
+</div>

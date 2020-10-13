@@ -1,0 +1,81 @@
+﻿
+
+
+@model JetSetupPortalHelper.APIObjs.AppSessionObj
+@{
+    /**/
+
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Class Of Certificate Detail</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+               
+                    @Html.Hidden("ClientId", Model.ClientId)
+                @Html.Hidden("ProductId", Model.ProductId)
+                @Html.Hidden("AppSessionId", Model.AppSessionId)
+                @Html.Hidden("SessionCode", Model.SessionCode)
+                @Html.Hidden("ChannelCode", Model.ChannelCode)
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+                        
+                        <dl class="">
+                            <dt>Session Name</dt>
+                            <dd>@Model.SessionName  </dd>
+                            <dt>Session Title</dt>
+                            <dd>@Model.SessionTitle</dd>
+                            <dt>Session Year</dt>
+                            <dd>@Model.SessionYear</dd>
+                            <dt>App Base Url</dt>
+                            <dd>@Model.AppBaseUrl</dd>
+                            <dt>Session Current Stage</dt>
+                            <dd>@Model.SessionCurrentStageLabel</dd>
+                            <dt>Start Date</dt>
+                            <dd>@Model.StartDate</dd>
+                            <dt>End Date</dt>
+                            <dd>@Model.EndDate</dd>
+                            <dt>Essay Enabled  </dt>
+                            <dd>@Model.EssayEnabled</dd>
+                            <dt>InstantTest Enabled  </dt>
+                            <dd>@Model.InstantTestEnabled</dd>
+                            <dt>Status  </dt>
+                            <dd>@Model.StatusLabel</dd>
+                        </dl>
+                      
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          
+                        </div>
+                    </div>
+                
+
+            }
+        </div>
+
+    </div>
+</div>
+
+
+

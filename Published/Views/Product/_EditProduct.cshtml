@@ -1,0 +1,215 @@
+﻿
+
+
+@model JetSetupPortalHelper.APIObjs.ProductObj
+@{
+    /**/
+
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Edit Product</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmEdit", data_parsley_validate = "" }))
+                {
+                    @Html.Hidden("ProductId", Model.ProductId)
+        <div class="col-md-12 col-sm-12">
+            <div id="dvError"></div>
+
+            <div class="form-group">
+                Client Name
+                <select id="ClientIdd" name="ClientId" class="form-control" style="width: 100%"></select>
+            </div>
+
+            <div class="form-group">
+                Name
+                <input type="text" class="form-control" id="Name" value="@Model.Name" name="Name" required="" data-parsley-maxlength="150" data-parsley-minlength="2" data-parsley-required-message="Name must be between 2 and 150 characters">
+            </div>
+            <div class="form-group">
+                Title
+                <input type="text" class="form-control" id="Title" value="@Model.Title" name="Title" required="" data-parsley-maxlength="300" data-parsley-minlength="2" data-parsley-required-message="Title must be between 2 and 300 characters">
+            </div>
+            <div class="form-group">
+                Current Implementation
+                <select id="CurrentImplementation" name="CurrentImplementation" class="form-control input-new" style="width: 100%"></select>
+            </div>
+            <div class="form-group">
+                Description
+                <input type="text" class="form-control" id="Description" value="@Model.Description" name="Description" data-parsley-maxlength="300" data-parsley-minlength="0" data-parsley-required-message="Description must not be more than 300 characters">
+            </div>
+            <div class="form-group">
+                LiveAPIUrl
+                <input type="text" class="form-control" id="LiveAPIUrl" value="@Model.LiveAPIUrl" name="LiveAPIUrl" required="" data-parsley-maxlength="300" data-parsley-minlength="5" data-parsley-required-message="Live API Url  must be between 5 and 300 characters">
+            </div>
+            <div class="form-group">
+                SandBox API Url
+                <input type="text" class="form-control" id="SandBoxAPIUrl" value="@Model.SandBoxAPIUrl" name="SandBoxAPIUrl" required="" data-parsley-maxlength="300" data-parsley-minlength="5" data-parsley-required-message="SandBox API Url  must be between 5 and 300 characters">
+            </div>
+            <div class="form-group">
+                Display Demographic Statistics
+                @Html.CheckBox("DisplayDemographicStat", Model.DisplayDemographicStat, new { htmlAttributes = new { @class = "form-control input-new" } })
+            </div>
+            <div class="form-group">
+                Display Location Statistics
+                @Html.CheckBox("DisplayLocationStat", Model.DisplayLocationStat, new { htmlAttributes = new { @class = "form-control input-new" } })
+            </div>
+            <div class="form-group">
+                Has Other Statistics
+                @Html.CheckBox("HasOtherStat", Model.HasOtherStat, new { htmlAttributes = new { @class = "form-control input-new" } })
+            </div>
+            <div class="form-group">
+                Status
+                @Html.CheckBox("StatusVal", Model.StatusVal, new { htmlAttributes = new { @class = "form-control input-new" } })
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-success">Update Product</button>
+            </div>
+        </div>
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        loadClients();
+        loadCurrentImplementations();
+        $('#frmEdit').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmEdit");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessEditProductRequest", "Product")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Product was updated successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $(".loader").hide();
+                    $("#loadingMessage").html("");
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+    function loadClients() {
+        $.getJSON("@Url.Action("LoadClients", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.ClientId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#ClientIdd").html(items);
+            });
+    }
+    function loadCurrentImplementations() {
+        $.getJSON("@Url.Action("LoadCurrentImplementation", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.CurrentImplementation') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#CurrentImplementation").html(items);
+            });
+    }
+</script>

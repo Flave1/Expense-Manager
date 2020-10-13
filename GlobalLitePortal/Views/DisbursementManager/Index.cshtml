@@ -1,0 +1,345 @@
+﻿@model IEnumerable<GlobalLitePortalHelper.APIObjs.Disbursement>
+@using XPLUG.WEBTOOLKIT
+@using PluglexHelper.PortalObjs
+@using PlugLitePortalHelper.APIObjs
+@{
+    ViewBag.Title = "Disbursement Management";
+    ViewBag.PgTitle = "Disbursement Management";
+    var error = ViewBag.Error as string;
+
+    var clientVal = ViewBag.ClientId as string;
+    var prodVal = ViewBag.ProductId as string;
+    var prodItemVal = ViewBag.ProductItemId as string;
+    var clientId = 0;
+    var prodId = 0;
+    var prodItemId = 0;
+
+    if (!string.IsNullOrEmpty(clientVal) && clientVal.IsNumeric())
+    {
+        clientId = int.Parse(clientVal);
+    }
+    if (!string.IsNullOrEmpty(prodVal) && prodVal.IsNumeric())
+    {
+        prodId = int.Parse(prodVal);
+    }
+    if (!string.IsNullOrEmpty(prodItemVal) && prodItemVal.IsNumeric())
+    {
+        prodItemId = int.Parse(prodItemVal);
+    }
+
+} 
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            @*<div class="col-sm-11">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <select id="ClientId" name="ClientId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="Client's information is required"></select>
+                        </div>
+                        <div class="col-sm-3">
+                            <select id="ProductId" name="ProductId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="Product's information is required"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="ProductItemId" name="ProductItemId" class="browser-default custom-select custom-select-lg mb-3 input-new" required="" data-parsley-required-message="Product Item is required"></select>
+                        </div>
+                        <div class="col-sm-3">
+                            <button type="button" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnLoad">
+                                <i class="icofont icofont-plus m-r-5"></i>LOAD
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>*@
+            @*<div class="col-sm-1 text-right">
+
+            <button type="button" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnAddNewItem">
+                    <i class="icofont icofont-plus m-r-5"></i>New
+                </button>
+        </div>*@
+            @*<button type="button" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnLoad">
+                <i class="icofont icofont-plus m-r-5"></i>LOAD EXPENSES
+            </button>*@
+        </div>
+    </div>
+    <div class="card-block">
+        @if (!string.IsNullOrEmpty(error) && error.Length > 0)
+        {
+            <div class="alert alert-success btn btn-sm" role="alert">
+                @Html.Raw(error)
+            </div>
+        }
+        <div class="table-responsive">
+            <table id="dtBasicExample" class="table table-striped table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th> Title</th>
+                        <th> Disbursement Mode </th>
+                        <th> Disbursed by</th>
+                        <th> Amount </th>
+                        @*<th class="tabledit-toolbar-column">Action</th>*@
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int k = 1;
+                        foreach (var item in Model)
+                        {
+                                        <tr>
+                                            <th>@k</th>
+
+                                            <td>
+                                                <span class="wrap-table">
+                                                    @item.Title
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="wrap-table">
+                                                    @item.DisbursementMode
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="wrap-table">
+                                                    @item.DisburesedBy
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="wrap-table">
+                                                    @item.AmountDisbursed
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <div class="tabledit-toolbar btn-toolbar">
+
+                                                    @* <span class="p-1"><a href="@Url.Action("_EditDisbursement", "DisbursementManager", new {DisbursementId = item.DisbursementId})" data-modal="" data-toggle="tooltip" title="Edit"><i class="far fa-edit"></i></a></span>*@
+                                                    @*<span class="p-1"><a href="@Url.Action("_DisbursementDetail", "DisbursementManager", new {DisbursementId = item.DisbursementId})" data-modal="" data-toggle="tooltip" title="Detail">   <i class="fas fa-eye"></i></a></span>
+                <span class="p-1"><a href="@Url.Action("_ManageDisbursementUsers", "DisbursementManager", new {DisbursementId = item.DisbursementId, DisbursementName = item.DisbursementName})" data-modal="" data-backdrop="static" data-keyboard="false" data-toggle="tooltip" title="Manage Users">   <i class="fas fa-users-cog"></i></a></span>
+                <span class="p-1"><a href="@Url.Action("Index", "ProductManager", new {DisbursementId = item.DisbursementId})" title="Products">   <i class="fa fa-arrow-circle-right"></i></a></span>
+                <span class="p-1"><a href="#" onclick="deleteItem('@item.DisbursementId')" data-toggle="tooltip" title="Delete"><i class="far fa-trash-alt red-text"></i></a></span>*@
+
+                                                </div>
+
+
+                                            </td>
+
+                                        </tr>
+                            k++;
+                        }
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts {
+
+    <script>
+        $(document).ready(function () { 
+            InitLoadClients();
+            loadClients();
+            loadItems(); 
+        });
+    </script>
+    <script>
+
+        @*$("#btnLoad").click(function () {
+             var selClient = localStorage["_ClientID_"];
+                var selProd = localStorage["_ProductID_"];
+                var selProdItemId = localStorage["_ProductItemID_"]; 
+
+                if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                    InlineErrorMessage("Session Time out please try logging out and login !", "dvError");
+                    return false;
+                }
+
+                if (selProd === null || selProd === "" || parseInt(selProd) < 1) {
+                    InlineErrorMessage("Session Time out please try logging out and login!", "dvError");
+                    return false;
+                }
+
+                if (selProdItemId === null || selProdItemId === "" || parseInt(selProdItemId) < 1) {
+                    InlineErrorMessage("Session Time out please try logging out and login!", "dvError");
+                    return false;
+                }
+               
+                
+                var url = '@Url.Action("Index", "DisbursementManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) + "&productItemId=" + parseInt( selProdItemId) ;
+
+                $("#waitAdd").show();
+
+                window.location.href = url;
+
+                $("#waitAdd").hide();   
+        });*@
+
+        function InitAdd() {
+            $("#ClientId").html("<option value=''>Loading Clients...</option>");
+            $("#ClientId").prop("disabled", true);
+            $("#ProductId").html("<option value=''>-- Empty Product List --</option>");
+            $("#ProductId").prop("disabled", true);
+            $("#ProductItemId").html("<option value=''>-- Empty ProductItem List --</option>");
+            $("#ProductItemId").prop("disabled", true);
+        }
+
+        function InitLoadClients() {
+            $("#ClientId").html("<option value=''>Loading Clients...</option>");
+            $("#ClientId").prop("disabled", true);
+            $("#ProductId").html("<option value=''>-- Empty Product List --</option>");
+            $("#ProductId").prop("disabled", true);
+            $("#ProductItemId").html("<option value=''>-- Empty Product Item List --</option>");
+            $("#ProductItemId").prop("disabled", true);
+        }
+
+
+        $("#ClientId").change(function () {
+            var selClient = $("#ClientId > option:selected").attr("value");
+            loadProducts(selClient);
+        });
+
+        $("#ProductId").change(function () {
+            var selClient = $("#ClientId > option:selected").attr("value");
+            var selProd = $("#ProductId > option:selected").attr("value");
+            loadItems(selClient, selProd);
+        });
+
+         
+
+         function loadClients() {
+            $.getJSON("@Url.Action("LoadClients", "PDataProvider")",
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            if (parseInt('@clientId') === item.Id) {
+                                items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                                if (parseInt('@clientId') > 0) {
+                                    loadProducts(parseInt('@clientId'));
+                                }
+
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+
+                        });
+                    $("#ClientId").html(items);
+                }).done(function() {
+                $("#ClientId").prop("disabled", false);
+            });
+        }
+
+
+        function loadProducts(clientId) {
+            $("#ProductId").html("<option value=''>Loading Products...</option>");
+            $("#ProductId").prop("disabled", true);
+            $.getJSON("@Url.Action("LoadUserClientProducts", "ODataProvider")?clientId=" + parseInt(clientId),
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            if (parseInt('@prodId') === item.Id) {
+                                items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                                if (parseInt('@prodId') > 0) {
+                                    loadItems(parseInt('@clientId'), parseInt('@prodId'));
+                                }
+
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+                        });
+                    $("#ProductId").html(items);
+                }).done(function() {
+                $("#ProductId").prop("disabled", false);
+            });
+        }
+
+        function loadItems(clientId, productId) {
+            $("#ProductItemId").html("<option value=''>Loading Product Items...</option>");
+            $("#ProductItemId").prop("disabled", true);
+            $.getJSON("@Url.Action("LoadUserClientProductItems", "ODataProvider")?clientId=" + parseInt(clientId) + "&productId=" + parseInt(productId),
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            if (parseInt('@prodItemId') === item.Id) {
+                                items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+                        });
+                    $("#ProductItemId").html(items);
+                }).done(function() {
+                $("#ProductItemId").prop("disabled", false);
+            });
+        }
+
+    </script>
+
+
+
+
+    <script>
+        function deleteItem(id) {
+            if (id === "" || parseInt(id) < 1) {
+                InlineErrorMessage(data.Error ? data.Error : "Invalid Selection!", "dvError");
+                return false;
+            }
+            if (!confirm("Are you sure you want to delete this item?")) {
+                return false;
+            }
+
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessDeleteRequest", "DisbursementManager")',
+                data: { DisbursementId: parseInt(id) }, //JSON.stringify(),
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Disbursement Information was deleted successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    // $("#waitAdd").hide();
+
+                }
+            });
+            return false;
+        }
+    </script>
+}

@@ -1,0 +1,82 @@
+﻿
+
+
+@model JetSetupPortalHelper.APIObjs.EmailConfigObj
+@{
+    /**/
+
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Class Of Certificate Detail</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+               
+                    @Html.Hidden("EmailConfigId", Model.EmailConfigId)
+                @Html.Hidden("ClientId", Model.ClientId)
+                @Html.Hidden("ProductId", Model.ProductId)
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+                        
+                        <dl class="">
+                            <dt>Title</dt>
+                            <dd>@Model.Title</dd>
+                            <dt>EmailDisplayTitle</dt>
+                            <dd>@Model.EmailDisplayTitle </dd>
+                            <dt>Email From</dt>
+                            <dd>@Model.EmailFrom</dd>
+                            <dt>Acknowledgement Email Subject</dt>
+                            <dd>@Model.AcknowledgementEmailSubject</dd>
+                            <dt> Activation Email Subject</dt>
+                            <dd>@Model.ActivationEmailSubject</dd>
+                            <dt> Activation Url</dt>
+                            <dd>@Model.ActivationUrl</dd>
+                            <dt>Accept Nomination Url</dt>
+                            <dd>@Model.AcceptNominationUrl</dd>
+                            <dt> Decline Nomination Url</dt>
+                            <dd>@Model.DeclineNominationUrl</dd>
+                            <dt>Reset Password Subject</dt>
+                            <dd>@Model.ResetPasswordSubject</dd>
+                            <dt>Reset Password Url</dt>
+                            <dd>@Model.ResetPasswordUrl</dd>
+
+                            <dt>Status </dt>
+                            <dd>@Model.StatusLabel</dd>
+                        </dl>
+                      
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          
+                        </div>
+                    </div>
+                
+
+            }
+        </div>
+
+    </div>
+</div>
+
+
+

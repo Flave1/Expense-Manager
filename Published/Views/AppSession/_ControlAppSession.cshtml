@@ -1,0 +1,168 @@
+﻿
+
+@using JetSetupPortalHelper.APIObjs
+@model JetSetupPortalHelper.APIObjs.AppSessionControlObj
+@{
+    /**/
+
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+
+    AppSessionObj session = (AppSessionObj) Session["AppSession"];
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Control App Session( @session.SessionName)</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmControl", data_parsley_validate = "" }))
+                {
+                    @Html.Hidden("AppSessionId", Model.AppSessionId)
+                    @Html.Hidden("SessionCurrentStage", @session.SessionCurrentStage)
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+                     
+                        <div class="form-group">
+                            Control Type
+                            <select id="ControlType" name="ControlType" class="form-control" style="width: 100%"></select>
+                        </div>
+                      
+
+                        </div>
+
+                      
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Control AppSession</button>
+                        </div>
+                  
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        loadControlTypes();
+        $('#frmControl').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmControl");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessControlRequest", "AppSession")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "AppSession was Controlled successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $(".loader").hide();
+                    $("#loadingMessage").html("");
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+    function loadControlTypes() {
+        $.getJSON("@Url.Action("LoadSessionControlType", "ODataProvider",new {sessionCurrentStage = @session.SessionCurrentStage})",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.ControlType') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#ControlType").html(items);
+            });
+    }
+
+   
+</script>

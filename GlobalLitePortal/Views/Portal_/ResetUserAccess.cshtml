@@ -1,0 +1,174 @@
+﻿@model GlobalLitePortal.PortalCore.Model.ResetUserAccessInfoObj
+@{
+    ViewBag.Title = "Reset User Access";
+    //Layout = "~/Views/Shared/_AuthorizeLayout.cshtml";
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" type="image/png" sizes="16x16" href="~/Content/assets/images/favicon.png">
+    <title>@ViewBag.Title - Pluglex Portal </title>
+    <link href="~/Content/dist/css/style.min.css" rel="stylesheet">
+    <link href="~/Content/assets/libs/x-common/css/prasley.css" rel="stylesheet">
+    <link href="~/Content/assets/libs/x-common/css/sweetalert.css" rel="stylesheet">
+</head>
+<body>
+<div class="auth-wrapper d-flex no-block justify-content-center align-items-center bg-dark">
+    <div class="auth-box bg-dark border-top border-secondary">
+        <div>
+            <div class="text-center pb-5 pt-4">
+                <span class="db"><img src="~/Content/assets/images/logo.png" alt="logo" /></span>
+            </div>
+            @if (hasError)
+            {
+                <div class="row pb-4">
+                    <div class="col-12">
+                        <div class="alert alert-danger" role="alert" id="customError">
+                            <h4>Error!</h4>
+                            <p>@Html.Raw(error)</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+
+            }
+            else
+            {
+                using (Html.BeginForm("Login", "Portal", FormMethod.Post, new { id = "frmResetPassword", data_parsley_validate = "" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("Email", Model.Email)
+                    @Html.Hidden("ConfirmationCode", Model.ConfirmationCode)
+                    <div class="row pb-4">
+                        <div class="col-12">
+                            <div id="dvError"></div>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-success text-white" id="basic-addon1"><i class="ti-pencil"></i></span>
+                                </div>
+                                <input type="password" id="NewPassword" name="NewPassword" class="form-control form-control-lg" placeholder="New Password" aria-label="NewPassword" aria-describedby="basic-addon1" required="" data-parsley-required-message="New Password is required">
+                            </div>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-warning text-white" id="basic-addon2"><i class="ti-pencil"></i></span>
+                                </div>
+                                <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control form-control-lg" placeholder="Confirm Password" aria-label="ConfirmPassword" aria-describedby="basic-addon1" required="" data-parsley-required-message="Confirmed Password is required">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row border-top border-secondary">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <div class="pt-4">
+                                    <button class="btn btn-success float-right" type="submit">Update Password</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                }
+            }
+
+        </div>
+
+    </div>
+</div>
+    
+<script src="~/Content/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="~/Content/assets/libs/popper.js/dist/umd/popper.min.js"></script>
+<script src="~/Content/assets/libs/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="~/Content/assets/libs/x-common/js/parsley.min.js"></script>
+<script src="~/Content/assets/libs/x-common/js/xtoolkit.js"></script>
+<script src="~/Content/assets/libs/x-common/js/sweetalert.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        $('#frmResetPassword').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check supplied values", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmResetPassword");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid User Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            var params = frm.serializeArray();
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessPasswordResetRequest", "Portal")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "User was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.href ="@Url.Action("Login", "Portal")";
+                                return;
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $(".loader").hide();
+                    $("#loadingMessage").html("");
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="icon" href="~/Content/assets/images/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/icon/themify-icons/themify-icons.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/icon/icofont/css/icofont.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/pages/flag-icon/flag-icon.min.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/pages/dashboard/horizontal-timeline/css/style.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/pages/dashboard/amchart/css/amchart.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/css/style.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/css/color/color-1.css" id="color" />
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/css/linearicons.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/css/simple-line-icons.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/css/ionicons.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/css/jquery.mCustomScrollbar.css">
+</head>
+<body class="fix-menu">
+    <section class="login p-fixed d-flex text-center bg-primary common-img-bg">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-6" style="margin:0 auto;">
+                    <div class="login-card card-block auth-body">
+                        <form></form>
+                        <div class="text-center">
+                            <img src="~/Content/assets/images/auth/logo.png" alt="logo.png">
+                        </div>
+                        <div class="auth-box">
+                            <div class="row m-b-20">
+                                <div class="col-md-12">
+                                    <h3 class="text-left txt-primary">@ViewBag.AuthTitle</h3>
+                                </div>
+                            </div>
+                            <hr />
+                            @RenderBody()
+                            <hr />
+                            <span style="color: black;font-size:10px;"> Powered By PlugLite Portal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script type="text/javascript" src="~/Content/assets/js/jquery/dist/jquery.min.js"></script>
+    <script src="~/Content/assets/js/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="~/Content/assets/js/tether/dist/js/tether.min.js"></script>
+    <script type="text/javascript" src="~/Content/assets/js/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="~/Content/assets/js/jquery-slimscroll/jquery.slimscroll.js"></script>
+    <script type="text/javascript" src="~/Content/assets/js/modernizr/modernizr.js"></script>
+    <script type="text/javascript" src="~/Content/assets/js/modernizr/feature-detects/css-scrollbars.js"></script>
+    <script type="text/javascript" src="~/Content/assets/js/classie/classie.js"></script>
+
+</body>
+
+</html>
+

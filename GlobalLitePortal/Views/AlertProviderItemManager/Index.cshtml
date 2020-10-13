@@ -1,0 +1,229 @@
+﻿@using XPLUG.WEBTOOLKIT
+@model GlobalLitePortalHelper.APIObjs.AlertProviderItemInfoObj
+@{
+    ViewBag.Title = "Provider Item";
+    ViewBag.PgTitle = "Provider Item Management";
+    var error = ViewBag.Error as string;
+}
+<div>
+    <h5>Registered Provider - Items</h5>
+</div>
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-sm-6">
+
+            </div>
+            <div class="col-sm-6 text-right">
+                <a class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnAddItem" >
+                    <i class="icofont icofont-plus m-r-5"></i>New Provider-Item
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-block">
+        @if (!string.IsNullOrEmpty(error) && error.Length > 0)
+        {
+            <div class="alert alert-success btn btn-sm" role="alert">
+                @Html.Raw(error)
+            </div>
+        }
+        @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmProviderItem", data_parsley_validate = "" }))
+        {
+           <div class="row" style="margin: 8px">
+               <div class="col-sm-9">
+                   Alert Provider
+                   <select id="AlertProviderId" name="AlertProviderId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="Alert Provider is required"></select>
+               </div>
+                <div class="col-sm-3 text-right" style="margin-top: 15px">
+                    <button type="submit" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnUpdate">Load</button>
+                </div>
+            </div>
+
+        }
+        <div id="dvProviderItemView"></div>
+    </div>
+</div>
+@section scripts {
+    <script>
+        $(document).ready(function () {
+           
+            if (!InitItemList()) {
+                $("#waitAdd").show();
+                loadProviders();
+            }
+            
+
+            
+            $('#btnAddItem').on("click", function () {
+                ClearInlineError("dvError");
+                
+                var selClient = $("#AlertProviderId > option:selected").attr("value");
+                var selClientName = $("#AlertProviderId option:selected").text();
+               
+
+                if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                    InlineErrorMessage("Please select a Alert Provider!", "dvError");
+                    return false;
+                }
+                
+                if (selClientName === undefined || selClientName === null || selClientName === "" || selClientName.length < 1) {
+                    InlineErrorMessage("Please select a Provider!", "dvError");
+                    return false;
+                }
+
+                var encoded = encodeURIComponent(selClientName);
+                
+                var url = '@Url.Action("_AddAlertProviderItem", "AlertProviderItemManager")?providerId=' + parseInt(selClient) + "&providerName=" + encoded;
+
+                $("#waitAdd").show();
+
+                $('#modalContent').load(url, function () {
+                    $('#dvModal').modal('show', {
+                        backdrop: 'static',
+                        keyboard: false,
+                    });
+                });
+               
+                $("#waitAdd").hide();
+            });
+
+
+            $('#frmProviderItem').parsley().on('field:validated', function() {
+                var ok = $('.parsley-error').length === 0;
+                if (!ok) {
+                    InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                    return false;
+                }
+            }).on('form:submit', function () {
+                ClearInlineError("dvError");
+
+                var selClient = $("#AlertProviderId > option:selected").attr("value");
+
+                if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                    InlineErrorMessage("Unable to load Alert Providers!", "dvError");
+                    return false;
+                }
+
+                $("#waitAdd").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("_ProviderItemView", "AlertProviderItemManager")',
+                    data: JSON.stringify({  providerId: parseInt(selClient) }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "html",
+                    success: function (data) {
+                        $('#dvProviderItemView').html(data);
+                    },
+                    complete: function () {
+                        $("#waitAdd").hide();
+                    }
+                });
+                return false;
+            });
+        });
+        function loadProviders() {
+            $.getJSON("@Url.Action("LoadAlertProviders", "OBusinessDataProvider")",
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            if (parseInt('@Model.AlertProviderId') === item.Id) {
+                                items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+
+                        });
+                    $("#AlertProviderId").html(items);
+                }).done(function() {
+                    $("#waitAdd").hide();
+                    $("#AlertProviderId").prop("disabled", false);
+                    $("#waitAdd").hide();
+            });
+        }
+        function InitItemList() {
+
+            var selClient = '@Model.AlertProviderId';
+            if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                return false;
+            }
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_ProviderItemView", "AlertProviderItemManager")',
+                data: JSON.stringify({  providerId: parseInt(selClient) }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "html",
+                success: function (data) {
+                    $('#dvProviderItemView').html(data);
+                },
+                complete: function () {
+                    loadProviders();
+                }
+            });
+
+            return true;
+        }
+    </script>
+    <script>
+        function deleteItem(itemId) {
+            if (itemId === "" || parseInt(itemId) < 1) {
+                InlineErrorMessage(data.Error ? data.Error : "Invalid Selection!", "dvError");
+                return false;
+            }
+            if (!confirm("Are you sure you want to delete this item?")) {
+                return false;
+            }
+
+
+            $.ajax({
+                type: "POST",
+                //url: '@Url.Action("ProcessDeleteRequest", "AlertProviderItemManager")',
+                data: { id: parseInt(itemId) }, //JSON.stringify(),
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Alert Route was deleted successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    // $("#waitAdd").hide();
+
+                }
+            });
+            return false;
+        }
+    </script>
+}

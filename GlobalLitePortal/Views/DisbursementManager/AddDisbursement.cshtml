@@ -1,0 +1,295 @@
+﻿
+@using GlobalLitePortalHelper.APICore
+@model GlobalLitePortalHelper.APIObjs.RegDisbursementObj
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+
+
+}
+@Html.Partial("_WaitLoader")
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title center text-center col-10 row">
+                <b class="col-7">
+                    Bal :
+                    <span id="balanceId">
+                        @Model.Balance
+                    </span>
+                </b>
+                <b class="col-5">
+                    Disbursed :
+                    <span>
+                        @Model.AmountDisbursed
+                    </span>
+                </b>
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasSessionError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(sessionError)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                if (hasError)
+                {
+                    <div class="alert alert-danger" role="alert" id="customError">
+                        <h4>Error!</h4>
+                        <p>@Html.Raw(error)</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+
+                }
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAdd", data_parsley_validate = "" }))
+                {
+
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+                        <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                        <input type="hidden" name="ProductItemId" value="@Model.ProductItemId" />
+                        <input type="hidden" name="ClientId" value="@Model.ClientId" />
+                        <input type="hidden" name="ExpenseId" value="@Model.ExpenseId" />
+                        <input type="hidden" name="ExpenseRequisitionId" value="@Model.ExpenseRequisitionId" />
+                        <input type="hidden" name="WorkflowItemId" value="@Model.WorkflowItemId" />
+                        <input type="hidden" name="RequestType" value="@Model.RequestType" />
+                        <input type="hidden" name="Balance" value="@Model.Balance" />
+
+                        <div class="row">
+                            <div class="col-sm-12 form-group">
+                                <label>Title </label>
+                                <input readonly id="Title" value="@Model.Title" name="Title" class="form-control" style="width: 100%" required="" data-parsley-required-message="  required" />
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>Amount Approved</label>
+                                <input id="AmountApprovedId" readonly class="form-control input-new" value="@Model.AmountApproved" style="width: 100%" required="" data-parsley-required-message="  required" />
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>Disburse Mode </label>
+                                @Html.DropDownList("DisbursementMode", EnumHelper.GetSelectList(typeof(DisburseMode)), "Select Disburse Mode", new { @id = "DisbursementMode", @class = "form-control input-new" })
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>Amount To Disburse</label>
+                                <input id="AmountDisbursedId" name="AmountDisbursed" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="  required" />
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>Voucher Number</label>
+                                <input id="VoucherNumberId" name="VoucherNumber" class="form-control input-new" style="width: 100%" value="@ViewBag.VoucherNumber" required="" data-parsley-required-message="  required" />
+                            </div>
+                            <div class="row col-sm-12  ">
+                                <label> Beneficiary</label>
+                                <select id="BeneficiaryId" name="BeneficiaryId" class="form-control col-12"></select>
+                            </div>
+
+
+                        </div>
+
+
+                        <div class="modal-footer">
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                            <button type="submit" id="btnAdd" class="btn btn-success">Add    </button>
+                        </div>
+                    </div>
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+            loadBeneficiaries(1);
+
+        $('#frmAdd').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+
+            ClearInlineError("dvError");
+
+
+                  if (!confirm("Are you sure you want to make Payments of " +$("#AmountDisbursedId").val()+ "?")) {
+                return false;
+            }
+
+
+            var frm = $("#frmAdd");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddDisbursementRequest", "DisbursementManager")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Disbursement Information was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+
+
+
+       function loadBeneficiaries(beneficiaryId) {
+                $("#BeneficiaryId").html("<option value=''>Beneficiaries...</option>");
+                $("#BeneficiaryId").prop("disabled", true);
+                $.getJSON("@Url.Action("LoadBeneficiaries", "OBusinessDataProvider")?beneficiaryId=" + parseInt(beneficiaryId),
+                    function(data) {
+                        var items = "";
+                        $.each(data,
+                            function (i, item) {
+                                if (parseInt('@Model.BeneficiaryId') === item.Id) {
+                                    items += "<option value='" +  item.Id + "' selected='selected'>" + item.Name +    "</option>";
+                                } else if (item.Id === 0) {
+                                    items += "<option value='' > -- Select Beneficiary -- </option>";
+                                } else {
+                                    items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                                }
+
+                            });
+                        $("#BeneficiaryId").html(items);
+                        $("#BeneficiaryId").prop("disabled", true);
+                    });
+
+            }
+
+
+     $('#AmountDisbursedId').on('keyup change', function () {
+        var amtDis = $('#AmountDisbursedId').val();
+         var balance = '@Model.Balance';
+        if (amtDis === "" || amtDis.length < 1 || parseInt(amtDis) < 1) {
+            amtDis = 0;
+        } else {
+            amtDis = parseInt(amtDis);
+        }
+        if (balance === "" || balance.length < 1 || parseInt(balance) < 1) {
+            balance = 0;
+        } else {
+            balance = parseInt(balance);
+         }
+         var result = 0;
+         result = Subtract(amtDis, balance);
+         if (result === -1) {
+                        swal({
+                            title: "",
+                            text: 'Amount to b disbursed is greater than balance \n   Do you wish to continue?',
+                            type: "error",
+                            showCancelButton: true,
+                            confirmButtonText: "YES",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                                $("#balanceId").html('@Model.Balance');
+                        });
+             $('#AmountDisbursedId').val();
+         } else {
+              $("#balanceId").html(result);
+         }
+
+
+    });
+
+</script>
+
+<script>
+    function Subtract(param1, param2) {
+        var getValOfBalannce = '@Model.Balance';
+         if (getValOfBalannce === "" || getValOfBalannce.length < 1 || parseInt(getValOfBalannce) < 1) {
+            getValOfBalannce = 0;
+        } else {
+            getValOfBalannce = parseInt(getValOfBalannce);
+        }
+
+        var result = 0;
+        if (param1 === 0) {
+            param1 = 0;
+        }
+        if (param2 === 0) {
+            param2 = 0;
+        }
+        if (param1 > getValOfBalannce) {
+            return  result = -1;
+        }
+        return result =   param2 - param1;
+    }
+</script>

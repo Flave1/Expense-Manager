@@ -1,0 +1,186 @@
+﻿@using JetSetupPortal.PortalCore.Model
+@using XPLUG.WEBTOOLKIT
+@{
+    var userData = MvcApplication.GetUserData(User.Identity.Name) ?? new UserData();
+    var tabs = MvcApplication.GetPortalTabData(User.Identity.Name);
+    var userRoleList = new List<string>();
+    if (userData.UserId > 0)
+    {
+        userRoleList = userData.Roles.ToList();
+    }
+
+}
+
+
+    <nav id="sidebar" class="sidebar-wrapper">
+        <div class="sidebar-content">
+            <div class="sidebar-brand">
+                <a href="#"><img src="~/Content/skin2/img/jet-logo1.png" alt="" width="170" /></a>
+                <div id="close-sidebar">
+                    <i class="fas fa-times"></i>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                @{
+                    if (tabs != null && tabs.Any())
+                    {
+                        var allTabs = tabs.OrderBy(m => m.TabOrder).ToList();
+                        var tabItemsList = allTabs.GroupBy(e => e.TabParentId, (key, g) => new
+                        {
+                            TabId = key,
+                            TabItems = g.ToList()
+                        }).ToList();
+
+                        var parentTabList = allTabs.FindAll(m => m.TabParentId == 0);
+                        if (parentTabList.Any())
+                        {
+                            <ul id="sidebarnav" class="pcoded-item pcoded-left-item">
+                                @foreach (var tabItemObj in parentTabList)
+                                {
+
+                                    //Confirm access to parent tab
+                                    var tabRoleList = tabItemObj.Roles.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                                    var results = tabRoleList.Where(userRoleList.Contains).ToList();
+                                    if (tabRoleList.Contains("All"))
+                                    {
+                                        results.Add("All");
+                                    }
+
+                                    if (!results.Any())
+                                    {
+                                        continue;
+                                    }
+
+                                    var thisItems = tabItemsList.Find(p => p.TabId == tabItemObj.TabId);
+                                    if (thisItems == null)
+                                    {
+                                        // This parent Tab contains no child
+                                        var tabSplit = tabItemObj.ContentUrl.Split(new[] { '|' }, StringSplitOptions.None);
+                                        if (!tabSplit.Any() || tabSplit.Length != 3)
+                                        {
+                                            <li class=" ">
+                                                <a href="javascript:void(0)">
+                                                    <span class="pcoded-micon"><i class="@tabItemObj.LeftPanelUrl"></i></span>
+                                                    <span class="pcoded-mtext" data-i18n="nav.dash.main">@tabItemObj.Title</span>
+                                                    <span class="pcoded-mcaret"></span>
+                                                </a>
+                                            </li>
+
+                                            continue;
+                                        }
+                                        var areaUrl = string.IsNullOrEmpty(tabSplit[2]) ? "" : tabSplit[2];
+                                        <li class="@Html.ActiveTab(tabSplit[1], new[] { tabSplit[0] }, "pcoded-trigger active")">
+                                            <a href="@Url.Action(tabSplit[0], tabSplit[1], new {Area = areaUrl})">
+                                                <span class="pcoded-micon"><i class="@tabItemObj.LeftPanelUrl"></i></span>
+                                                <span class="pcoded-mtext" data-i18n="nav.dash.main"> @tabItemObj.Title</span>
+                                                <span class="pcoded-mcaret"></span>
+                                            </a>
+                                        </li>
+                                        continue;
+                                    }
+                                    if (thisItems.TabId > 0 && thisItems.TabItems.Any())
+                                    {
+                                        var controllerList = new List<string>();
+                                        var thisTabList = thisItems.TabItems.OrderBy(m => m.TabOrder).ToList();
+                                        var tabListPaths = thisTabList.Select(m => m.ContentUrl).ToList();
+                                        tabListPaths.ForEachx(m =>
+                                        {
+                                            if (!string.IsNullOrEmpty(m) && m.Contains("|"))
+                                            {
+                                                var thisPath = m.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                                                if (thisPath.Any() && thisPath.Count > 1)
+                                                {
+                                                    controllerList.Add(thisPath[1].Trim());
+                                                }
+                                            }
+                                        });
+
+                                        <li class="sidebar-dropdown  @Html.ActiveTabs(controllerList.ToArray(), new[] { "Index" }, "pcoded-trigger")">
+                                            <a href="javascript:void(0)">
+                                                <span class="pcoded-micon"><i class="@tabItemObj.LeftPanelUrl"></i></span>
+                                                <span class="pcoded-mtext" data-i18n="nav.dash.main"> @tabItemObj.Title</span>
+                                                <span class="pcoded-mcaret"></span>
+                                            </a>
+                                            <div class="sidebar-submenu">
+                                                <ul class="pcoded-submenu">
+                                                    @foreach (var tabItem in thisTabList)
+                                                    {
+                                                        //Confirm access to child tab
+                                                        var childTabRoleList = tabItem.Roles.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                                                        var results2 = childTabRoleList.Where(userRoleList.Contains).ToList();
+                                                        if (!results2.Any())
+                                                        {
+                                                            continue;
+                                                        }
+
+                                                        var tabSplit = tabItem.ContentUrl.Split(new[] { '|' }, StringSplitOptions.None);
+                                                        if (!tabSplit.Any() || tabSplit.Length != 3)
+                                                        {
+                                                            continue;
+
+                                                        }
+                                                        var areaUrl = string.IsNullOrEmpty(tabSplit[2]) ? "" : tabSplit[2];
+                                                        if (tabItem.Title.ToUpper() != "QCC")
+                                                        {
+                                                            <li class="@Html.ActiveTab(tabSplit[1], new[] { tabSplit[0] }, "active")">
+                                                                <a href="@Url.Action(tabSplit[0], tabSplit[1], new {Area = areaUrl})" @(tabItem.TabType == 3 ? "data-modal=NONE" : "")>
+                                                                    <span class="pcoded-micon"><i class="@tabItem.LeftPanelUrl"></i></span>
+                                                                    <span class="pcoded-mtext" data-i18n="nav.dash.default">@tabItem.Title</span>
+                                                                    <span class="pcoded-mcaret"></span>
+                                                                </a>
+                                                            </li>
+                                                        }
+
+                                                    }
+                                                </ul>
+
+                                            </div>
+                                            
+                                        </li>
+
+                                    }
+
+                                }
+                            </ul>
+                        }
+
+                    }
+                }
+
+
+            </div>
+            <!-- sidebar-menu  -->
+        </div>
+        <!-- sidebar-content  -->
+        <div class="sidebar-footer">
+            <a href="@Url.Action("index", "Dashboard")" data-toggle="tooltip" title="Dashboard">
+                <i class="fas fa-home"></i>
+                <span class="badge badge-pill badge-info notification"></span>
+            </a>
+            <a href="@Url.Action("ChangeUserPassword", "Portal")" data-modal="ChangePasswordModal" data-toggle="tooltip" title="Change Password">
+                <i class="fas fa-user-lock"></i>
+            </a>
+            <a href="@Url.Action("MyProfile", "Portal")" data-toggle="tooltip" title="User Profile">
+                <i class="fas fa-user-cog"></i>
+            </a>
+            <a href="@Url.Action("Index", "SignOut")" data-toggle="tooltip" title="Logout">
+                <i class="fa fa-power-off"></i>
+                <span class="badge-sonar"></span>
+            </a>
+        </div>
+    </nav>
+
+
+
+
+<nav class="pcoded-navbar" pcoded-header-position="relative">
+    <div class="sidebar_toggle"><a href="#"><i class="icon-close icons"></i></a></div>
+    <div class="pcoded-inner-navbar main-menu">
+        @*<div class="main-menu-header">
+            <div class="user-details"><span>JetRecruiter <sup>TM</sup></span></div>
+        </div>*@
+      
+
+
+    </div>
+</nav>

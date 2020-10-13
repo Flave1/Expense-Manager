@@ -1,0 +1,80 @@
+﻿@using XPLUG.WEBTOOLKIT
+@model GlobalLitePortalHelper.APIObjs.AlertTypeObj
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">@Model.Title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasSessionError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(sessionError)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                if (hasError)
+                {
+                    <div class="alert alert-danger" role="alert" id="customError">
+                        <h4>Error!</h4>
+                        <p>@Html.Raw(error)</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+
+                }
+                @Html.Hidden("AlertTypeId", Model.AlertTypeId)
+                <div class="col-md-12 col-sm-12">
+                    <div id="dvError"></div>
+
+                    <dl class="">
+                        <dt>Title</dt>
+                        <dd>@Model.Title  </dd>
+                        <dt>Provider</dt>
+                        <dd>@Model.AlertProviderName  </dd>
+                        <dt>Code</dt>
+                        <dd>@Model.Code  </dd>
+                        <dt>Service Codes</dt>
+                        <dd>@Model.ServiceCodes  </dd>
+                        <dt>Status  </dt>
+                        <dd>@Model.StatusLabel</dd>
+                    </dl>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                    </div>
+                </div>
+
+
+            }
+        </div>
+
+    </div>
+</div>
+
+
+
+
+
+
+
+

@@ -1,0 +1,243 @@
+﻿@using GlobalLitePortalHelper.APICore
+@using GlobalLitePortalHelper.APIObjs
+@model PlugLitePortalHelper.APIObjs.RegWorkflowDetailObj
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+
+
+    var currentTask = (WorkflowTaskObj)Session["_CurrentSelWorkflowTask_"];
+    if (currentTask == null)
+    {
+        currentTask = new WorkflowTaskObj();
+    }
+    var approved = WorkflowStatus.Approved;
+    var queried = WorkflowStatus.Queried;
+    var denied = WorkflowStatus.Denied;
+    var approvedValue = (int)WorkflowStatus.Approved;
+    var queriedValue = (int)WorkflowStatus.Queried;
+    var deniedValue = (int)WorkflowStatus.Denied;
+}
+@Html.Partial("_WaitLoader")
+
+<div class="card" >
+    <div class="card-header">
+        <div class="row">
+            <div class="col-12">
+                <div class="row" style="float:right;">
+                    @*<div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <select id="ClientId" name="ClientId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="Client's information is required"></select>
+                                </div>
+                                <div class="col-sm-3">
+                                    <select id="ProductId" name="ProductId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="Product's information is required"></select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="ProductItemId" name="ProductItemId" class="browser-default custom-select custom-select-lg mb-3 input-new" required="" data-parsley-required-message="Product Item is required"></select>
+                                </div>
+                                <div class="col-sm-3">
+                                    <button type="button" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnLoad">
+                                        <i class="icofont icofont-plus m-r-5"></i>LOAD
+                                    </button>
+                                </div>
+                            </div>
+                        </div>*@
+
+
+                    <div class="col-6">
+                        <button type="button" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnLoad">
+                            <i class="icofont icofont-plus m-r-5"></i>LOAD
+                        </button>
+                    </div>
+                    @*<div class="col-6">
+                            <button type="button" class="btn btn-danger btn-sm waves-effect waves-light d-inline-block md-trigger" title="Required for full functionality" data-toggle="tooltip" id="requiredLkp">
+                                <i class="icofont icofont-plus m-r-5"></i>Required Lookups
+                            </button>
+                        </div>*@
+                    <div class="col-6">
+                        <button type="button" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnAddNewItem">
+                            <i class="icofont icofont-plus m-r-5"></i>Configure Lookups
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="card-block" >
+        <div class="modal-dialog modal-lg  ">
+            <div class="modal-content row">
+                @*<div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>*@
+                <div>
+                    <div>
+                        @Html.Action("RecommendationList", "WorkflowTaskManager", new { ExpenseRequisitionId = currentTask.ExpenseRequisitionId })
+                    </div>
+
+                    @if (hasSessionError)
+                    {
+                        <div class="alert alert-danger" role="alert" id="customError">
+                            <h4>Error!</h4>
+                            <p>@Html.Raw(sessionError)</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+
+                    }
+                    else
+                    {
+                        if (hasError)
+                        {
+                            <div class="alert alert-danger" role="alert" id="customError">
+                                <h4>Error!</h4>
+                                <p>@Html.Raw(error)</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+
+                        }
+                        using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAdd", data_parsley_validate = "" }))
+                        {
+                            <div class="col-md-12 col-sm-12">
+                                <div id="dvError"></div>
+
+                                <div class="">
+                                    <b>Title :</b>  <strong class="text-muted">@currentTask.TaskTitle</strong>
+                                </div>
+                                <div class="">
+                                    <b>Assignee Email :</b>  <strong class="text-muted">@currentTask.AssigneeEmail</strong>
+                                </div> 
+                                <div class="">
+                                    <b>Task Description :</b>  <p class="text-muted">@currentTask.TaskDescription</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <b class="label-default">Recommendation :</b>
+                                    <textarea class="form-control" name="Recommendation" rows="4">@Model.Recommendation</textarea>
+                                </div>
+                                <div class="row container">
+                                    <div class="col-4">
+                                        <input type="radio" name="Status" for="check1" value="@approvedValue" class="form-radio">
+                                        <label class="form-check-label">@approved</label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" name="Status" for="check2" value="@queriedValue" class="form-radio">
+                                        <label class="form-check-label"> @queried</label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" name="Status" for="check3" value="@deniedValue" class="form-radio">
+                                        <label class="form-check-label">@denied</label>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-success">Save</button>
+                                </div>
+                            </div>
+                        }
+
+                    }
+                </div>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#frmAdd').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmAdd");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddWorkflowDetailRequest", "WorkflowDetailManager")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Responded to requisition",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+
+</script>

@@ -1,0 +1,149 @@
+﻿
+<!DOCTYPE html>
+@using JetSetupPortal.PortalCore.Model
+
+@{
+    var userData = MvcApplication.GetUserData(User.Identity.Name) ?? new UserData();
+    var tabs = MvcApplication.GetPortalTabData(User.Identity.Name);
+    var userRoleList = new List<string>();
+    if (userData.UserId > 0)
+    {
+        userRoleList = userData.Roles.ToList();
+    }
+
+}
+<html>
+<head>
+    <title>PlugLite Portal - @ViewBag.Title</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" href="~/Content/assets/images/favicon.png" type="image/x-icon">
+    <link href="~/Content/x-common/css/prasley.css" rel="stylesheet">
+    <link href="~/Content/x-common/css/sweetalert.css" rel="stylesheet">
+    <link href="~/Content/app/bootstrap-datetimepicker.css" rel="stylesheet" />
+    <link href="~/Content/daterangepicker.css" rel="stylesheet" />
+    <link href="~/Content/app/datedropper.min.css" rel="stylesheet" />
+    <link href="~/Content/custom.css" rel="stylesheet" />
+
+    <!--New Reference-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+    <link href="~/Content/skin2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Content/skin2/css/mdb.min.css" rel="stylesheet">
+    <link href="~/Content/skin2/css/style.css" rel="stylesheet">
+
+
+</head>
+<body themebg-pattern="pattern2">
+    <div class="theme-loader">
+        <div class="ball-scale">
+            <div></div>
+        </div>
+    </div>
+
+
+    <div class="page-wrapper chiller-theme toggled">
+        <a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
+            <i class="fas fa-bars"></i>
+        </a>
+        @Html.Partial("_SideNavBar")
+        <!-- sidebar-wrapper  -->
+        <main class="wrap page-content page-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-6">
+                        <span class="user-name">
+                            <h4>@ViewBag.PgTitle</h4>  
+                        </span>
+                    </div>
+                    <div class="col-6 text-right">
+                        <span class="user-name">
+                            @userData.Email
+                        </span>
+                        <img class="img-responsive img-rounded" src="~/Content/skin2/img/user.png" width="40" alt="User picture">
+                    </div>
+                </div>
+                <hr />
+                @RenderBody()
+
+
+                <div class="footer-copyright" style="border:none; margin: 0;">
+
+                    <span style="color: #232323;font-size:11px;"> Copyright © 2019 <strong>Powered By PlugLite Portal </strong></span>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script type="text/javascript" src="~/Content/skin2/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="~/Content/skin2/js/popper.min.js"></script>
+    <script type="text/javascript" src="~/Content/skin2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="~/Content/skin2/js/mdb.min.js"></script>
+    <script type="text/javascript" src="~/Content/skin2/js/custom.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script src="~/Scripts/daterangepicker.js"></script>
+    <script type="text/javascript" src="~/Content/skin2/js/addons/datatables.js"></script>
+    <script src="~/Scripts/bootstrap-datepicker.js"></script>
+    <script src="~/Content/x-common/js/parsley.min.js"></script>
+    <script src="~/Content/x-common/js/sweetalert.min.js"></script>
+
+    <script src="~/Content/x-common/js/xtoolkit.js"></script>
+
+
+    <div class="modal" id="dvModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div id="modalContent"></div>
+    </div>
+
+    <script>
+        $(function () {
+
+            $.ajaxSetup({ cache: false });
+
+            $('#responsive-table').DataTable();
+            $('#responsive-table-col').DataTable({
+                'columnDefs': [{
+                    'targets': [0, 2, 3, 5, 6],
+                    'orderable': false
+                }]
+
+            });
+
+            $(document).on("focus", ".date", function (e) {
+                $(this).datepicker({
+                    format: "dd/mm/yyyy",
+                    daysOfWeekHighlighted: "0",
+                    autoclose: true,
+                    todayHighlight: true,
+                    changeMonth: true
+                });
+            });
+
+            $(document).on("click", "a[data-modal]", function (e) {
+                $(e.target).closest('.btn-group').children('.dropdown-toggle').dropdown('toggle');
+                $('#modalContent').load(this.href, function () {
+                    $('#dvModal').modal('show', {
+                        backdrop: 'static',
+                        keyboard: false,
+                    });
+                });
+                return false;
+            });
+
+
+        });
+
+        // Tooltips Initialization
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        })
+
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+
+</html>

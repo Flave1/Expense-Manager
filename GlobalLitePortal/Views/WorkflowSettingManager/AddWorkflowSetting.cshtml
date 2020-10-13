@@ -1,0 +1,390 @@
+﻿@using GlobalLitePortalHelper.APICore
+@model PlugLitePortalHelper.APIObjs.RegWorkflowSettingObj
+@{
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+ 
+}
+@Html.Partial("_WaitLoader")
+    <style>
+        input.lkpItem {
+    padding-bottom: 0.1px;
+}
+    </style>
+<div class="col-sm-3 pull-right text-right" style="float:right">
+    <button type="button" class="btn btn-secondary btn-sm waves-effect waves-light d-inline-block md-trigger pull-right" onclick="back()">
+        <i class="icofont icofont-plus m-r-5"></i>Back
+    </button>
+</div>
+<div class="card">
+    @if (hasSessionError)
+    {
+        <div class="alert alert-danger" role="alert" id="customError">
+            <p>@Html.Raw(sessionError)</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    }
+    else
+    {
+        <div class="card-header"> 
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-9 form-group">
+                        <div id="dvError"></div>
+                    </div>
+
+                </div>
+
+            }
+
+
+        </div>
+        <div class="card-block" style="margin-top: 15px">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAddProduct", data_parsley_validate = "" }))
+            {
+                <div class="col-md-12 col-sm-12">
+                    <div id="dvError"></div>
+                    <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                    <input type="hidden" name="ProductItemId" value="@Model.ProductItemId" />
+                    <input type="hidden" name="ClientId" value="@Model.ClientId" />
+                    <div class="form-group">
+                        Look Up items 
+                        <select name="RequestType" id="lookUpId" class="form-control"></select>
+                    </div>
+                    <div class="row">
+                        <div class=" col-8">
+                            <div class="col-12 row" >   
+                                <ol id="SubItemId">
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <br />
+                            <input type="hidden" readonly="" class="form-control" id="ApprovalWorkflow" value="@Model.ApprovalWorkflow" name="ApprovalWorkflow">
+                            <div class="row">
+                                <div class="form-group col-6">
+                                    Status
+                                    @Html.CheckBox("StatusVal", Model.StatusVal, new { htmlAttributes = new { @class = "form-control input-new" } })
+                                </div>
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="modal-footer">
+                        <button type="submit" id="btnAdd" class="btn btn-success">Add </button>
+                    </div>
+                </div>
+            }
+        </div> 
+    } 
+</div>
+@section scripts {
+    <script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script> 
+    <script> 
+        $("#lookUpId").change(function () {
+            var endpointId = $("#lookUpId").val(); 
+            $("#LookupNameId").val($("#lookUpId option:selected").text()); 
+        });
+
+        $("#btnAdd").click(function () {
+            var outputOrder = "";
+            var formattedOutput = "";
+            $(".lkpItem").each(function () {
+
+                if ($(this).val() !== "") {
+                    if (outputOrder === "") {
+                        outputOrder += $(this).val();
+                    } else {
+                        outputOrder += "," + $(this).val();
+                    }
+                }
+            });
+
+            var myArray = [];
+            var sets = [];
+            myArray = outputOrder.split(',');
+            var thisItemCount = myArray.length;
+
+            for (var i = 1; i < thisItemCount; i = i + 3) {
+                if (myArray[i].toString() === '0') {
+                    continue;
+                }
+
+                if (myArray[i] <= 0) {
+                    InlineErrorMessage("Invalid order: Order value must be greater than zero ", "dvError");
+                    return false;
+                }
+
+                if (myArray[i + 1] <= 0) {
+                    InlineErrorMessage(" Rank value must be greater than zero .", "dvError");
+                    return false;
+                } 
+
+                sets.push(myArray[i]);
+                formattedOutput += " " + myArray[i - 1] + "|" + myArray[i] + "|" + myArray[i + 1];
+            }
+            $("#ApprovalWorkflow").val(formattedOutput.trim());
+
+            if (duplicateExists(sets)) {
+                InlineErrorMessage("Duplicate order detected.", "dvError");
+                return false;
+            }
+
+            var missing = findMissingElements(sets);
+            if (missing !=0) {
+                InlineErrorMessage(missing+' missing in the order sequence.', "dvError");
+                return false;
+            } 
+
+            for (var i = 0; i < sets.length; i++) {
+                if (parseInt(sets[i]) > WFLevelArray.length) {
+                    InlineErrorMessage("Invalid order: Order value greater than number of items.", "dvError");
+                    return false;
+                }
+            }
+        });
+
+        function findMissingElements(arr) {
+            arr = arr.slice(0).sort(function (a, b) { return a - b; });
+            let next = 1;
+            for (let i = 0; i < arr.length; i++) {
+                while (next < arr[i]) {
+                    return next;
+                    break;
+                    next++;
+                }
+                next++;
+            }
+            return 0;
+        }
+
+        var duplicateExists = function (a) {
+            for (var i = 0; i <= a.length; i++) {
+                for (var j = i; j <= a.length; j++) {
+                    if (i !== j && a[i] === a[j]) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            loadWorkflowApprovalLevel();
+            LoadRequestTypes();
+            $('#btnBackToProd').on("click",
+                function() {
+                    ClearInlineError("dvError");
+                    var selClient = '@Model.ClientId';
+                    var selProd = '@Model.ProductId';
+                    var clientId = 0;
+                    var prodId = 0;
+                    if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                        clientId = 0;
+                    } else {
+                        clientId = parseInt(selClient);
+                    }
+
+                    if (selProd === "" || selProd.length < 1 || parseInt(selProd) < 1) {
+                        prodId = 0;
+                    } else {
+                        prodId = parseInt(selProd);
+                    }
+
+                    var url = '@Url.Action("Index", "WorkflowSettingManager")?clientId=' +
+                        clientId +
+                        "&productId=" +
+                        prodId;
+
+                    $("#waitAdd").show();
+                    window.location.href = url;
+                    $("#waitAdd").hide();
+                });
+
+            $('#frmAddProduct').parsley().on('field:validated',
+                function() {
+                    var ok = $('.parsley-error').length === 0;
+                    if (!ok) {
+                        InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                        return false;
+                    }
+                }).on('form:submit',
+                function() {
+                    ClearInlineError("dvError");
+
+                    var selClient = '@Model.ClientId';
+                    var selProd = '@Model.ProductId';
+                    var selProdItem = '@Model.ProductItemId';
+                    var clientId = 0;
+                    var prodId = 0;
+                    if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                        clientId = 0;
+                    } else {
+                        clientId = parseInt(selClient);
+                    }
+
+                    if (selProd === "" || selProd.length < 1 || parseInt(selProd) < 1) {
+                        prodId = 0;
+                    } else {
+                        prodId = parseInt(selProd);
+                    }
+
+                    if (clientId < 1) {
+                        InlineErrorMessage("Invalid Client Information", "dvError");
+                        return false;
+                    }
+
+                    if (prodId < 1) {
+                        InlineErrorMessage("Invalid Product Information", "dvError");
+                        return false;
+                    }
+
+                    var frm = $("#frmAddProduct");
+
+                    if (frm == null) {
+                        InlineErrorMessage("Invalid Product Information", "dvError");
+                        return false;
+                    }
+
+
+                    if (!frm.valid()) {
+                        InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                        return false;
+                    }
+
+                    var url = '@Url.Action("AddWorkflowSetting", "WorkflowSettingManager")?clientId=' +
+                        parseInt(selClient) +
+                        "&productId=" +
+                        parseInt(selProd);
+
+                    var params = frm.serializeArray();
+
+                    $("#waitAdd").show();
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("ProcessAddWorkflowSettingRequest", "WorkflowSettingManager")',
+                        data: params,
+                        success: function(data) {
+                            if (!data.IsAuthenticated) {
+                                window.location.href = "@Url.Action("Login", "Portal")";
+                                return;
+                            }
+                            if (!data.IsSuccessful) {
+                                InlineErrorMessage(
+                                    data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                                    "dvError");
+                                swal({
+                                        title: "",
+                                        text: data.Error
+                                            ? data.Error
+                                            : "Unknown error occured. Please try again later!",
+                                        type: "error",
+                                        showCancelButton: false,
+                                        confirmButtonText: "Close",
+                                        closeOnConfirm: true,
+                                    },
+                                    function(isConfirm) {
+                                        if (isConfirm) {
+
+                                        }
+                                    });
+
+                            } else {
+                                $('#dvModal').modal('hide');
+                                swal({
+                                        title: "",
+                                        text: "Work flow Item was added successfully",
+                                        type: "success",
+                                        showCancelButton: false,
+                                        confirmButtonText: "Ok",
+                                        closeOnConfirm: false,
+                                    },
+                                    function(isConfirm) {
+                                        if (isConfirm) {
+                                            window.location.href = url;
+                                        }
+                                    });
+                            }
+                        },
+                        complete: function() {
+                            $("#waitAdd").hide();
+                        }
+                    });
+                    return false;
+                });
+        });
+
+        function back() {
+            var url = '@Url.Action("Index", "WorkflowSettingManager")?clientId=' +
+                parseInt('@Model.ClientId') +
+                "&productId=" +
+                parseInt('@Model.ProductId') ;
+            window.location.href = url;
+        }
+    </script>
+
+    <script>
+        var WFLevelArray=[];
+        function loadWorkflowApprovalLevel() {
+            $.getJSON("@Url.Action("LoadWorkflowApprovalLevels", "OBusinessDataProvider")",
+                function(data) {
+                    var items = "";
+                    items += "<b><label class='col-6 '> Approval Levels </label></b>" +
+                        "<b> <label class='col-2 lkpItem  '>Order </label></b> " +
+                        "<b><label class='col-2 lkpItem  '> Rank   </label> </b> ";
+
+                    $.each(data,
+                        function (i, item) {
+                            WFLevelArray.push(item.id+':'+ item.Name );
+                            items += "<label class='col-6 '>" +
+                                item.Name +
+                                "</label>   <input  value='" +
+                                item.Id +
+                                "' class='lkpItem'  type='hidden'/>   <input class='col-2 lkpItem lkpItemOrder' placeholder='Order' value='0' type='number'/> <input class='col-2 lkpItem lkpItemRank' placeholder='Rank'  type='number' value='0'  />  ";
+                        });
+                    $("#SubItemId").html(items);
+                });
+        }
+
+        function LoadRequestTypes() {
+            $("#lookUpId").html("<option value=''>Request Types...</option>");
+            $("#lookUpId").prop("disabled", true);
+            $.getJSON("@Url.Action("LoadRequestTypeEnums", "OBusinessDataProvider")?clientId=" + parseInt('@Model.ClientId') + "&productId=" + parseInt('@Model.ProductId') + "&productItemId=" + parseInt('@Model.ProductItemId'),
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function (i, item) {
+                            if (parseInt('@Model.RequestType') === item.Id) {
+                                items += "<option value='" +  item.Id + "' selected='selected'>" + item.Name +    "</option>";
+                            } else if (item.Id === 0) {
+                                items += "<option value='' > -- Select Beneficiary -- </option>";
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+
+                        });
+                    $("#lookUpId").html(items);
+                    $("#lookUpId").prop("disabled", false);
+                });
+
+        }
+
+        
+    </script>
+}
+
+
+

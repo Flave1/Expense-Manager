@@ -1,0 +1,30 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+    ViewBag.PgTitle = "Dashboard";
+
+}
+
+<div id="dvStatsView"></div>
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            $("#waitAdd").show();
+           $.ajax({
+                type: "POST",
+                url: '@Url.Action("_StatsDisplayView", "QuickDashboard")',
+                contentType: "application/json; charset=utf-8",
+                dataType: "html",
+                success: function (data) {
+                    $('#dvStatsView').html(data);
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+
+        });
+    </script>
+}
+

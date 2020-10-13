@@ -1,0 +1,854 @@
+﻿@using GlobalLitePortal.PortalCore.Model
+@using GlobalLitePortalHelper.APICore
+@using GlobalLitePortalHelper.APIObjs
+@model GlobalLitePortalHelper.APIObjs.ClientProductInfoObj
+@{
+    ViewBag.Title = "Dashboard";
+    ViewBag.PgTitle = "Dashboard";
+
+    var userData = MvcApplication.GetUserData(User.Identity.Name) ?? new UserData();
+    var client = "";
+    var clientId = 0;
+    var clientCount = 0;
+    var productCount = 0;
+    var product = "";
+    var productId = 0;
+    var productItemCount = 0;
+    var productItem = "";
+    var productItemId = 0;
+    List<ProductObjInfo> productObjinfo = null;
+
+
+    foreach (var userClient in userData.ClientProductList)
+    {
+        client = userClient.ClientInfo.ClientName;
+        clientId = userClient.ClientInfo.ClientId;
+        clientCount = userData.ClientProductList.Count();
+
+
+        foreach (var prod in userClient.Products)
+        {
+            product = prod.ProductInfo.Name;
+            productId = prod.ProductInfo.ProductId;
+            productCount = userClient.Products.Count();
+            productObjinfo = userClient.Products;
+        }
+    }
+  
+    if (ViewBag.productItemCount != null)
+    {
+        productItemCount = ViewBag.productItemCount ?? 0;
+        productItemId = ViewBag.productItemId ?? 0;
+    }
+
+
+}
+
+<div id="dvError" class="row "></div>
+@using (Html.BeginForm("Index", "Dashboard", FormMethod.Post))
+{
+
+    <div class="row" id="clietnProdProdItemSelector">
+        <div class="col-md-3" id="divCLient" style="display:none">
+            <h4>Client</h4>
+            <select id="ClientId" name="ClientId" class="clientOption browser-default custom-select custom-select-lg mb-3 input-new" required="" data-parsley-required-message="Client is required"></select>
+        </div>
+
+        <div class="col-md-4" id="divProduct" style="display:none">
+            <h4>Product</h4>
+            <select id="ProductId" name="ProductId" class="productOption browser-default custom-select custom-select-lg mb-3 input-new" required="" data-parsley-required-message="Product is required"></select>
+        </div>
+        <div class="col-md-4" id="divItem" style="display:none">
+            <h4>Item</h4>
+            <select id="ProductItemId" name="ProductItemId" class="itemOption browser-default custom-select custom-select-lg mb-3 input-new" required="" data-parsley-required-message="Product Item is required"></select>
+        </div>
+
+
+
+        @*<div class="col-md-1 text-left">
+                <h4> &nbsp; </h4>
+                <button type="submit" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnUpdate">Go</button>
+            </div>*@
+    </div>
+}
+
+
+<div id="mydiv1">
+
+    <div class="card-body">
+        @if (Model.Appstats != null || Model.Appstats.RequisitionStats.Count() != 0)
+        {
+            <h5><i class="fa fa-cogs"></i> Requisition</h5>
+            <hr />
+            <div class="row mb-3" style="font-size: 13px;">
+                @foreach (var reqStatus in Model.Appstats.RequisitionStats)
+                {
+                    if (reqStatus.Item == (int)RequestStatus.Registered)
+                    {
+                        <div class="col-lg-2 col-md-6 col-sm-3">
+                            <div class="card p-2" style="border-left:40px solid rgba(112,9,121,1); font-size: 13px;">
+                                <i class="far fa-file-alt text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                <h6 style="margin: 0px;padding: 0px;">@reqStatus.ItemLabel</h6>
+                                <h2 class="m-0 p-0 text-right"> @reqStatus.Count</h2>
+                            </div>
+                        </div>
+                    }
+                    if (reqStatus.Item == (int)RequestStatus.Ratification)
+                    {
+                        <div class="col-lg-2 col-md-6 col-sm-3">
+                            <div class="card p-2" style="border-left:40px solid rgba(112,9,121,1); font-size: 13px;">
+                                <i class="far fa-file-alt text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                <h6 style="margin: 0px;padding: 0px;">@reqStatus.ItemLabel</h6>
+                                <h2 class="m-0 p-0 text-right"> @reqStatus.Count</h2>
+                            </div>
+                        </div>
+                    }
+                    if (reqStatus.Item == (int)RequestStatus.Processing)
+                    {
+                        <div class="col-lg-2 col-md-6 col-sm-3">
+                            <div class="card p-2" style="border-left:40px solid #0099CC; font-size: 13px;">
+                                <i class="fas fa-cogs text-white" style="margin-left: -38px;font-size: 20px;position: absolute;"></i>
+                                <h6 style="margin: 0px;padding: 0px;">Processing</h6>
+                                <h2 class="m-0 p-0 text-right">@reqStatus.Count</h2>
+                            </div>
+                        </div>
+                    }
+                    if (reqStatus.Item == (int)RequestStatus.Approved)
+                    {
+                        <div class="col-lg-2 col-md-6 col-sm-3">
+                            <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                <h6 style="margin: 0px;padding: 0px;">Approved</h6>
+                                <h2 class="m-0 p-0 text-right">@reqStatus.Count</h2>
+                            </div>
+                        </div>
+                    }
+                    if (reqStatus.Item == (int)RequestStatus.Disbursed)
+                    {
+                        <div class="col-lg-3 col-md-6 col-sm-3">
+                            <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                <h6 style="margin: 0px;padding: 0px;">Disbursed</h6>
+                                <h2 class="m-0 p-0 text-right">@reqStatus.Count</h2>
+                            </div>
+                        </div>
+                    }
+                    if (reqStatus.Item == (int)RequestStatus.Queried)
+                    {
+                        <div class="col-lg-2 col-md-6 col-sm-3">
+                            <div class="card p-2" style="border-left:40px solid #FF8800; font-size: 13px;">
+                                <i class="fas fa-exclamation text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                <h6 style="margin: 0px;padding: 0px;">Queried</h6>
+                                <h2 class="m-0 p-0 text-right">@reqStatus.Count</h2>
+                            </div>
+                        </div>
+                    }
+                    if (reqStatus.Item == (int)RequestStatus.Processing)
+                    {
+                        <div class="col-lg-2 col-md-6 col-sm-3">
+                            <div class="card p-2" style="border-left:40px solid #424242; font-size: 13px;">
+                                <i class="fas fa-tasks text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                <h6 style="margin: 0px;padding: 0px;">Pending Appr.</h6>
+                                <h2 class="m-0 p-0 text-right">@reqStatus.Count</h2>
+                            </div>
+                        </div>
+                    }
+                    if (reqStatus.Item == (int)RequestStatus.Closed)
+                    {
+                        <div class="col-lg-2 col-md-6 col-sm-3">
+                            <div class="card p-2" style="border-left:40px solid #424242; font-size: 13px;">
+                                <i class="fas fa-tasks text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                <h6 style="margin: 0px;padding: 0px;">Closed</h6>
+                                <h2 class="m-0 p-0 text-right">@reqStatus.Count</h2>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+<!--Payment-->
+@*<div class="" id="mydiv2">
+
+        <div class="card-body">
+            @if (Model.Appstats != null)
+            {
+                <h5><i class="fa fa-wallet"></i> Expense </h5>
+                <hr />
+                <div class="row mb-3">
+                    @if (Model.Appstats.DisbursementStats != null)
+                    {
+                        foreach (var disStatus in Model.Appstats.DisbursementStats)
+                        {
+                            if (disStatus.Item == (int)DisburseMode.Bank_Transfer)
+                            {
+                                <div class="col-lg-3 col-md-6 col-sm-3">
+                                    <div class="card p-2" style="border-left:40px solid rgba(112,9,121,1); font-size: 13px;">
+                                        <i class="far fa-file-alt text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                        <h6 style="margin: 0px;padding: 0px;">Bank_Transfer</h6>
+                                        <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                    </div>
+                                </div>
+                            }
+                            if (disStatus.Item == (int)DisburseMode.Cash)
+                            {
+                                <div class="col-lg-3 col-md-6 col-sm-3">
+                                    <div class="card p-2" style="border-left:40px solid #0099CC; font-size: 13px;">
+                                        <i class="fas fa-cogs text-white" style="margin-left: -38px;font-size: 20px;position: absolute;"></i>
+                                        <h6 style="margin: 0px;padding: 0px;">Cash</h6>
+                                        <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                    </div>
+                                </div>
+                            }
+                            if (disStatus.Item == (int)DisburseMode.Cheque)
+                            {
+                                <div class="col-lg-3 col-md-6 col-sm-3">
+                                    <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                        <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                        <h6 style="margin: 0px;padding: 0px;">Cheque</h6>
+                                        <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                    </div>
+                                </div>
+                            }
+                            if (disStatus.Item == (int)DisburseMode.E_Payment)
+                            {
+                                <div class="col-lg-3 col-md-6 col-sm-3">
+                                    <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                        <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                        <h6 style="margin: 0px;padding: 0px;">E_Payment</h6>
+                                        <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                    </div>
+                                </div>
+                            }
+
+                        }
+                    }
+
+                </div>
+            }
+        </div>
+    </div>*@
+
+
+<div class="" id="mydiv3">
+
+    <div class="card-body">
+        @if (Model.Appstats != null)
+        {
+            <h5><i class="fa fa-wallet"></i> Expense </h5>
+            <hr />
+            <div class="row mb-3">
+                @if (Model.Appstats.Status != null)
+                {
+                    foreach (var disStatus in Model.Appstats.ExpenseStats)
+                    {
+                        if (disStatus.Item == (int)ExpenseStatus.Delivered)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid rgba(112,9,121,1); font-size: 13px;">
+                                    <i class="far fa-file-alt text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Delivered</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+                        if (disStatus.Item == (int)ExpenseStatus.Awaiting_Disbursement)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid #0099CC; font-size: 13px;">
+                                    <i class="fas fa-cogs text-white" style="margin-left: -38px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Awaiting Disbursement</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+                        if (disStatus.Item == (int)ExpenseStatus.Disbursed)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                    <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Disbursed</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+                        if (disStatus.Item == (int)ExpenseStatus.Disbursing)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                    <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Disbursing</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+                        if (disStatus.Item == (int)ExpenseStatus.Closed)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                    <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Closed</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+
+            </div>
+        }
+    </div>
+</div>
+
+
+@*<div class="" id="mydiv4">
+
+        <div class="card-body">
+            @if (Model.Appstats != null)
+            {
+                <h5><i class="fa fa-wallet"></i> Disbursements</h5>
+                <hr />
+                <div class="row mb-3">
+                    @if (Model.Appstats.ExpenseStats != null)
+                    {
+                        foreach (var disStatus in Model.Appstats.ExpenseStats)
+                        {
+                            if (disStatus.Item == (int)ExpenseStatus.Delivered)
+                            {
+                                <div class="col-lg-3 col-md-6 col-sm-3">
+                                    <div class="card p-2" style="border-left:40px solid rgba(112,9,121,1); font-size: 13px;">
+                                        <i class="far fa-file-alt text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                        <h6 style="margin: 0px;padding: 0px;">Delivered</h6>
+                                        <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                    </div>
+                                </div>
+                            }
+                            if (disStatus.Item == (int)ExpenseStatus.Awaiting_Disbursement)
+                            {
+                                <div class="col-lg-3 col-md-6 col-sm-3">
+                                    <div class="card p-2" style="border-left:40px solid #0099CC; font-size: 13px;">
+                                        <i class="fas fa-cogs text-white" style="margin-left: -38px;font-size: 20px;position: absolute;"></i>
+                                        <h6 style="margin: 0px;padding: 0px;">Awaiting Disbursement</h6>
+                                        <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                    </div>
+                                </div>
+                            }
+                            if (disStatus.Item == (int)ExpenseStatus.Disbursed)
+                            {
+                                <div class="col-lg-3 col-md-6 col-sm-3">
+                                    <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                        <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                        <h6 style="margin: 0px;padding: 0px;">Disbursed</h6>
+                                        <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                    </div>
+                                </div>
+                            }
+                            if (disStatus.Item == (int)ExpenseStatus.Disbursing)
+                            {
+                                <div class="col-lg-3 col-md-6 col-sm-3">
+                                    <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                        <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                        <h6 style="margin: 0px;padding: 0px;">Disbursing</h6>
+                                        <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                    </div>
+                                </div>
+                            }
+                            if (disStatus.Item == (int)ExpenseStatus.Closed)
+                            {
+                                <div class="col-lg-3 col-md-6 col-sm-3">
+                                    <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                        <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                        <h6 style="margin: 0px;padding: 0px;">Closed</h6>
+                                        <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+
+                </div>
+            }
+        </div>
+    </div>*@
+
+
+<div class="" id="mydiv4">
+
+    <div class="card-body">
+        @if (Model.Appstats != null)
+        {
+            <h5><i class="fa fa-wallet"></i>Workflow Task Status</h5>
+            <hr />
+            <div class="row mb-3">
+                @if (Model.Appstats.workflowTasksStats != null)
+                {
+                    foreach (var disStatus in Model.Appstats.workflowTasksStats)
+                    {
+                        if (disStatus.Item == (int)WorkflowStatus.Approved)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid rgba(112,9,121,1); font-size: 13px;">
+                                    <i class="far fa-file-alt text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Approved</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+                        if (disStatus.Item == (int)WorkflowStatus.Denied)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid #0099CC; font-size: 13px;">
+                                    <i class="fas fa-cogs text-white" style="margin-left: -38px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Denied</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+                        if (disStatus.Item == (int)WorkflowStatus.Processing)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                    <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Processing</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+                        if (disStatus.Item == (int)WorkflowStatus.Queried)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                                    <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Queried</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+
+                    }
+                }
+
+            </div>
+        }
+    </div>
+</div>
+
+
+<div class="" id="mydiv5">
+
+    <div class="card-body">
+        @if (Model.Appstats != null)
+        {
+            <h5><i class="fa fa-wallet"></i> Workflow Stages</h5>
+            <hr />
+            <div class="row mb-3">
+                @if (Model.Appstats.workflowStagesStats != null)
+                {
+                    foreach (var disStatus in Model.Appstats.workflowStagesStats)
+                    {
+                        if (disStatus.Item == (int)WorkflowStage.Initiation)
+                        {
+                            <div class="col-lg-3 col-md-6 col-sm-3">
+                                <div class="card p-2" style="border-left:40px solid rgba(112,9,121,1); font-size: 13px;">
+                                    <i class="far fa-file-alt text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                                    <h6 style="margin: 0px;padding: 0px;">Initiation</h6>
+                                    <h2 class="m-0 p-0 text-right">@disStatus.Count</h2>
+                                </div>
+                            </div>
+                        }
+
+
+                    }
+                }
+
+            </div>
+        }
+    </div>
+</div>
+
+@*<div class="">
+        <h5><i class="fa fa-wallet"></i> Work Flow</h5>
+        <hr />
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-lg-3 col-md-6 col-sm-3">
+                    <div class="card p-2" style="border-left:40px solid rgba(112,9,121,1); font-size: 13px;">
+                        <i class="far fa-file-alt text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                        <h6 style="margin: 0px;padding: 0px;">Pending Payment</h6>
+                        <h2 class="m-0 p-0 text-right">500</h2>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-3">
+                    <div class="card p-2" style="border-left:40px solid #0099CC; font-size: 13px;">
+                        <i class="fas fa-cogs text-white" style="margin-left: -38px;font-size: 20px;position: absolute;"></i>
+                        <h6 style="margin: 0px;padding: 0px;">Approved Payment</h6>
+                        <h2 class="m-0 p-0 text-right">500</h2>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-3">
+                    <div class="card p-2" style="border-left:40px solid #00C851; font-size: 13px;">
+                        <i class="fas fa-check text-white" style="margin-left: -35px;font-size: 20px;position: absolute;"></i>
+                        <h6 style="margin: 0px;padding: 0px;">Outstanding Payment</h6>
+                        <h2 class="m-0 p-0 text-right">500</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>*@
+<!--	Spacing 	-->
+<div class="m-3"></div>
+
+@*@if (Model.ProductInfo.DisplayLocationStat)
+    {
+
+    }*@
+
+@*@if (Model.ProductInfo.DisplaySummaryStat)
+    {*@
+@*<hr />
+    <h4><i class="fas fa-user-tie"></i>Experience</h4>
+    <div class="row pb-4">
+        <div class="col-md-4">
+            <div class="card p-3 exp-info">
+                <span class=""><strong>Experience Duration</strong></span>
+                <span class="badge exp-color pb-0 fa-pull-right pb-1" style="font-size: 18px">64</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 exp-info">
+                <span class=""><strong>Leadership Experience</strong></span>
+                <span class="badge exp-color pb-0 fa-pull-right pb-1" style="font-size: 18px">40</span>
+            </div>
+        </div>
+
+    </div>
+    <hr />
+    <h4><i class="fas fa-certificate"></i>Professional Certificate</h4>
+    <div class="row pb-4">
+        <div class="col-md-4">
+            <div class="card p-3 p-info">
+                <span class=""><strong>Professional Qualification</strong></span>
+                <span class="badge p-color pb-0 fa-pull-right pb-1" style="font-size: 18px">58.49</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 p-info">
+                <span class=""><strong>Professional Body Ward</strong></span>
+                <span class="badge p-color pb-0 fa-pull-right pb-1" style="font-size: 18px">04</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 p-info">
+                <span class=""><strong>Award</strong></span>
+                <span class="badge p-color pb-0 fa-pull-right pb-1" style="font-size: 18px">10</span>
+            </div>
+        </div>
+    </div>*@
+@*}
+
+    @if (Model.ProductInfo.HasOtherStat)
+    {*@
+@*<hr />
+
+    <h4><i class="fas fa-asterisk"></i>Others</h4>
+    <div class="row pb-4">
+        <div class="col-md-4">
+            <div class="card p-3 oth-info">
+                <span class=""><strong>Others 1</strong></span>
+                <span class="badge oth-color pb-0 fa-pull-right pb-1" style="font-size: 18px">58.49</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 oth-info">
+                <span class=""><strong>Others 2</strong></span>
+                <span class="badge oth-color pb-0 fa-pull-right pb-1" style="font-size: 18px">04</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 oth-info">
+                <span class=""><strong>Others 3</strong></span>
+                <span class="badge oth-color pb-0 fa-pull-right pb-1" style="font-size: 18px">10</span>
+            </div>
+        </div>
+    </div>*@
+@*}*@
+
+
+
+
+
+
+
+@section scripts{
+
+    <script src="~/Content/assets/js/d3/d3.js"></script>
+    <script src="~/Content/assets/js/rickshaw/rickshaw.js"></script>
+    <!-- Morris Chart js -->
+    <script src="~/Content/assets/js/raphael/raphael.min.js"></script>
+    <script src="~/Content/assets/js/morris/morris.js"></script>
+    <!-- Horizontal-Timeline js -->
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/horizontal-timeline/js/main.js"></script>
+
+
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/horizontal-timeline/js/main.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/amcharts.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/serial.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/light.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/custom-amchart.js"></script>
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/amchart/js/custom-amchart.js"></script>
+
+    <script type="text/javascript" src="~/Content/assets/pages/dashboard/custom-dashboard.js"></script>
+
+    <script>
+
+
+
+        $(document).ready(function () {
+
+            //if (localStorage["_ClientID_"] !== "" && localStorage["_ProductItemID_"] !== "" && localStorage["_ProductID_"] !== "") {
+            //    $("#clietnProdProdItemSelector").hide();
+            //} else {
+            //     $("#clietnProdProdItemSelector").show();
+            //}
+            localStorage["_ClientID_"] = "";
+            localStorage["_ClientName_"] = "";
+            localStorage["_ProductID_"] = "";
+            localStorage["_ProductName_"] = "";
+            localStorage["_ProductItemID_"] = "";
+            localStorage["_ProductItemName_"] = "";
+             
+            if (parseInt('@clientCount') === 1) {
+                localStorage["_ClientName_"] = '@client';
+                localStorage["_ClientID_"] = '@clientId';
+                $("#layoutClientName").html(localStorage["_ClientName_"]); 
+                if (parseInt('@productCount') === 1) {
+                    localStorage["_ProductID_"] = '@productId';
+                    localStorage["_ProductName_"] = '@product'; 
+                        if (parseInt('@productItemCount') === 0 ) {
+                            localStorage["_ProductItemID_"] = '@productItemId';
+                            localStorage["_ProductItemName_"] = '@productItem';
+                            ReloadSession('@clientId', '@productId', '@productItemId');
+                        } else {
+                            $("#divItem").hide();
+                            loadItems(localStorage["_ClientID_"], localStorage["_ProductID_"]);
+                            $("#ProductItemId").change(function () {
+                                localStorage["_ProductItemID_"] = $("#ProductItemId > option:selected").attr("value");
+                                localStorage["_ProductItemName_"] = $("#ProductItemId  option:selected").text();
+                                localStorage["_SessionVariable_"] = "";
+                                ReloadSession(localStorage["_ClientID_"] , localStorage["_ProductID_"],localStorage["_ProductItemID_"]);
+                            });
+                        }
+                    $("#layoutProductName").html(localStorage["_ProductName_"]);
+                    ReloadSession(localStorage["_ClientID_"] , localStorage["_ProductID_"],localStorage["_ProductItemID_"]); 
+                } else {
+                    $("#divProduct").show();
+                    loadProducts(localStorage["_ClientID_"]);
+                    $("#ProductId").change(function () {
+                        localStorage["_SessionVariable_"] = "";
+                        localStorage["_ProductID_"] = $("#ProductId > option:selected").attr("value");
+                        localStorage["_ProductName_"] = $("#ProductId  option:selected").text();
+                        $("#layoutProductName").html(localStorage["_ProductName_"]); 
+                        ReloadSession(localStorage["_ClientID_"], localStorage["_ProductID_"], '@productItemId');  
+                        $("#divItem").hide(); 
+                        if (parseInt('@productItemCount') === 1 ) {
+                            localStorage["_ProductItemID_"] = '@productItemId';
+                            localStorage["_ProductItemName_"] = '@productItem';
+                             $("#divItem").hide();
+                            ReloadSession(localStorage["_ClientID_"] , localStorage["_ProductID_"],localStorage["_ProductItemID_"]); 
+                        } else { 
+                            $("#divItem").hide();
+                            loadItems(localStorage["_ClientID_"], localStorage["_ProductID_"]);
+                            $("#ProductItemId").change(function () {
+                                localStorage["_SessionVariable_"] = "";
+                                localStorage["_ProductItemID_"] = $("#ProductItemId > option:selected").attr("value");
+                                localStorage["_ProductItemName_"] = $("#ProductItemId  option:selected").text();
+                                ReloadSession(localStorage["_ClientID_"] , localStorage["_ProductID_"],localStorage["_ProductItemID_"]);
+                            });
+                        }  
+                    });
+
+                }
+            } else {
+                $("#divCLient").show();
+                $("#divProduct").show();
+                $("#divItem").show(); 
+             loadUserClients();
+             var prodId = '@Model.CurrentProductId';
+             var clientId = '@Model.CurrentClientId';
+             var prodItemId = '@Model.CurrentProductItemId';
+            if (parseInt(prodId) < 1) {
+                          $("#ProductId").html("<option value=''>-- Empty List --</option>");
+                          $("#ProductId").prop("disabled", true);
+                          $("#ProductItemId").html("<option value=''>-- Empty List --</option>");
+                          $("#ProductItemId").prop("disabled", true);
+                      } else {
+                        loadProducts(clientId);
+                      }
+             if (parseInt(prodItemId) < 1) {
+                    $("#ProductItemId").html("<option value=''>-- Empty List --</option>");
+                    $("#ProductItemId").prop("disabled", true);
+                  } else {
+                          loadItems(clientId,  prodId);
+                    } 
+                $("#ClientId").change(function () {
+                    var selClient = $("#ClientId > option:selected").attr("value");
+                    var selClientName = $("#ClientId  option:selected").text();
+                     localStorage["_ClientID_"] = selClient;
+                     localStorage["_ClientName_"] = selClientName;
+                     $("#layoutClientName").html(localStorage["_ClientName_"]);
+                    loadProducts(selClient);
+                }); 
+                $("#ProductId").change(function () {
+                    var selClient = $("#ClientId > option:selected").attr("value");
+                    var selClientName = $("#ClientId  option:selected").text();
+                    var selProd = $("#ProductId > option:selected").attr("value");
+                    var selProdName = $("#ProductId  option:selected").text(); 
+                    localStorage["_ClientID_"] = selClient;
+                    localStorage["_ClientName_"] = selClientName;
+                    localStorage["_ProductID_"] = selProd;
+                    localStorage["_ProductName_"] = selProdName;
+                     $("#layoutProductName").html(localStorage["_ProductName_"]);
+                    loadItems(selClient, selProd);
+                });
+                $("#ProductItemId").change(function () {
+                    var selClient = $("#ClientId > option:selected").attr("value");
+                    var selClientName = $("#ClientId  option:selected").text();
+                    var selProd = $("#ProductId > option:selected").attr("value");
+                    var selProdName = $("#ProductId  option:selected").text();
+                    var selProdItemId = $("#ProductItemId > option:selected").attr("value");
+                    var selProdItemName = $("#ProductItemId  option:selected").text(); 
+
+                    localStorage["_ClientID_"] = selClient;
+                    localStorage["_ClientName_"] = selClientName;
+                    localStorage["_ProductID_"] = selProd;
+                    localStorage["_ProductName_"] = selProdName;
+                    localStorage["_ProductItemID_"] = selProdItemId;
+                    localStorage["_ProductItemName_"] = selProdItemName;
+                     $("#layoutProductName").html(localStorage["_ProductName_"]);
+                    loadItems(selClient, selProd);
+                    ReloadSession(localStorage["_ClientID_"] , localStorage["_ProductID_"],localStorage["_ProductItemID_"]);
+                });
+
+            }
+        });
+
+
+    </script>
+
+
+    <script>
+           function loadUserClients() {
+                $.getJSON("@Url.Action("LoadUserClients", "ODataProvider")",
+                    function (data) {
+                        var items = "";
+                        $.each(data,
+                            function(i, item) {
+                                if (parseInt('@Model.CurrentClientId') === item.Id) {
+                                    items += "<option value='" +
+                                        item.Id +
+                                        "' selected='selected'>" +
+                                        item.Name +
+                                        "</option>";
+                                } else {
+                                    items += "<option value='" + item.Id + "'>" + item.Name + "</option>"; 
+                                } 
+                            });
+                        $("#ClientId").html(items);
+                    });
+            }
+            function loadProducts(clientId) {
+                $("#ProductId").html("<option value=''>Loading Products...</option>");
+                $("#ProductId").prop("disabled", true);
+                $.getJSON("@Url.Action("LoadUserClientProducts", "ODataProvider")?clientId=" + parseInt(clientId),
+                    function(data) {
+                        var items = "";
+                        $.each(data,
+                            function(i, item) {
+                                if (parseInt('@Model.CurrentProductId') === item.Id) {
+                                    if (item.Id === 0) {
+                                        items += "<option value='' > -- Please Select -- </option>";
+                                    } else {
+
+                                        items += "<option value='" +
+                                            item.Id +
+                                            "' selected='selected'>" +
+                                            item.Name +
+                                            "</option>"; 
+                                    }
+
+                                } else if (item.Id === 0) {
+                                    items += "<option value='' > -- Please Select -- </option>";
+                                } else {
+                                    items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                                }
+                            });
+                        $("#ProductId").html(items);
+                    }).done(function() {
+                    $("#ProductId").prop("disabled", false);
+                });
+        }
+            function loadItems(clientId, productId) {
+                $("#ProductItemId").html("<option value=''>Loading Product Items...</option>");
+                $("#ProductItemId").prop("disabled", true);
+                $.getJSON("@Url.Action("LoadUserClientProductItems", "ODataProvider")?clientId=" + parseInt(clientId) + "&productId=" + parseInt(productId),
+                    function(data) {
+                        var items = "";
+                        $.each(data,
+                            function(i, item) {
+                                if (parseInt('@Model.CurrentProductItemId') === item.Id) {
+                                    if (item.Id === 0) {
+                                        items += "<option value='' > -- Please Select -- </option>";
+                                    } else {
+
+                                        items += "<option value='" +
+                                            item.Id +
+                                            "' selected='selected'>" +
+                                            item.Name +
+                                            "</option>";
+
+                                    }
+
+                                } else if (item.Id === 0) {
+                                    items += "<option value='' > -- Please Select -- </option>";
+                                } else {
+                                    items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                                }
+                            });
+                        $("#ProductItemId").html(items);
+                    }).done(function() {
+                    $("#ProductItemId").prop("disabled", false);
+                });
+        }
+
+    </script>
+
+
+}
+
+<script>
+    function ReloadSession(client, product, item) {
+            if (client == "" || product ==""|| item =="" || client == null || product ==null|| item == null ) {
+                return false;
+            }
+            if (localStorage["_SessionVariable_"] !== 1) {
+                        localStorage["_SessionVariable_"] = 1;
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("Index", "Dashboard")',
+                    data: JSON.stringify({ ClientId: client, ProductId: product, ProductItemId: item }), //JSON.stringify(),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        $("#mydiv").load(location.href + " #mydiv1");
+                        $("#mydiv").load(location.href + " #mydiv2");
+                    },
+                    complete: function () {
+
+                    }
+                });
+                return false;
+            }
+            return false;
+        }
+</script>
+

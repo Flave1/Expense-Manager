@@ -1,0 +1,276 @@
+﻿@model PluglexHelper.PortalObjs.UserItemObj
+@{
+    ViewBag.Title = "My Profile";
+    ViewBag.PgTitle = "My Profile";
+}
+
+
+<div class="page-body">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-6 pt-2 card-header-text"><h5>Profile Detail</h5></div>
+                        <div class="col-6 text-right">
+                            <a id="edit-btn" class="btn btn-sm btn-primary waves-effect waves-light">
+                                Edit <i class="icofont icofont-edit"></i> @*<i class="far fa-edit"></i*@
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-block">
+                    <div class="view-info">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="general-info">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-xl-6 m-border">
+                                            @*<table class="table m-0">
+                                                <tbody>
+                                                    <tr>
+                                                        <th scope="row">First Name</th>
+                                                        <td style="width: 244px;">@Model.FirstName</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Last Name</th>
+                                                        <td>@Model.LastName</td>
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>*@
+
+
+                                                <div class="row">
+                                                    <div class="col-lg-12 p-4" style="border-bottom:1px solid #d7d7d7;">
+                                                        <div class="row">
+                                                            <div class="col-4">First Name</div>
+                                                            <div class="col-8" style="font-weight:300;">@Model.FirstName</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12 p-4">
+                                                        <div class="row">
+                                                            <div class="col-4">Last Name</div>
+                                                            <div class="col-8" style="font-weight:300;">@Model.LastName</div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+
+                                        </div>
+                                        <div class="col-lg-6 col-xl-6">
+
+                                            <div class="row">
+                                                <div class="col-lg-12 p-4" style="border-bottom:1px solid #d7d7d7;">
+                                                    <div class="row">
+                                                        <div class="col-4">Email</div>
+                                                        <div class="col-8" style="font-weight:300;">@Model.Email</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-12 p-4">
+                                                    <div class="row">
+                                                        <div class="col-4">Mobile Number</div>
+                                                        <div class="col-8" style="font-weight:300;">@Model.MobileNumber</div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+
+                                            @*<table class="table m-0">
+                                                <tbody>
+                                                    <tr>
+                                                        <th scope="row">Email</th>
+                                                        <td>@Model.Email</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Mobile Number</th>
+                                                        <td>@Model.MobileNumber</td>
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>*@
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end of view-info -->
+                    <div class="edit-info">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="general-info">
+                                    @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmUpdateProfile", data_parsley_validate = "" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <div id="dvError"></div>
+                                                <table class="table">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <span class="input-group-addon"><i class="icofont icofont-user"></i></span>
+                                                                    <input type="text" class="form-control input-new" id="FirstName" value="@Model.FirstName" placeholder="First Name">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <span class="input-group-addon"><i class="icofont icofont-user"></i></span>
+                                                                    <input type="text" class="form-control input-new" id="LastName" value="@Model.LastName" placeholder="Last Name">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <!-- end of table col-lg-6 -->
+                                            <div class="col-lg-6">
+                                                <table class="table">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <span class="input-group-addon"><i class="icofont icofont-mobile-phone"></i></span>
+                                                                    <input type="text" class="form-control input-new" id="MobileNumber" value="@Model.MobileNumber" placeholder="Mobile Number">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <span class="input-group-addon"><i class="icofont icofont-social-twitter"></i></span>
+                                                                    <input type="text" id="Email" name="Email" class="form-control input-new" value="@Model.Email" readonly="readonly" placeholder="Email">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <button type="submit" class="btn btn-success btn-sm waves-effect waves-light m-r-20">Save</button>
+                                            <a href="#!" id="edit-cancel" class="btn btn-danger btn-sm waves-effect">Cancel</a>
+                                        </div>
+
+                                    }
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section scripts{
+    <script src="~/Content/controls/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Content/controls/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <script src="~/Content/controls/datedropper/datedropper.min.js"></script>
+    <script src="~/Content/controls/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="~/Content/controls/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/Content/controls/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="~/Content/assets/pages/user-profile.js"></script>
+
+    <script>
+    $(document).ready(function () {
+
+        $('#frmUpdateProfile').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check supplied values", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+            alert('Here');
+
+            var fName = $("#FirstName").val();
+            var lName = $("#LastName").val();
+            var mNumber = $("#MobileNumber").val();
+
+            if (fName === "" || fName.length < 2) {
+                InlineErrorMessage("Empty / Invalid First Name", "dvError");
+                return false;
+            }
+
+            if (lName === "" || lName.length < 2) {
+                InlineErrorMessage("Empty / Invalid Last Name", "dvError");
+                return false;
+            }
+
+            if (mNumber === "" || mNumber.length !== 11) {
+                InlineErrorMessage("Empty / Invalid Mobile Number", "dvError");
+                return false;
+            }
+
+            var params = {
+                UserId: parseInt('@Model.UserId'),
+                FirstName: fName,
+                LastName: lName,
+                MobileNumber: mNumber,
+                AdminUserId: 1,
+            };
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessProfileUpdate", "Portal")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Profile was updated successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.reload();
+                                return;
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                  
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+
+    </script>
+}
+
+

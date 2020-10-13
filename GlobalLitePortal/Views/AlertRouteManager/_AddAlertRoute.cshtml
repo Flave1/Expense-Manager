@@ -1,0 +1,251 @@
+﻿
+@model GlobalLitePortalHelper.APIObjs.RegAlertRouteObj
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+}
+@Html.Partial("_WaitLoader")
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Add New Alert Route</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasSessionError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(sessionError)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                if (hasError)
+                {
+                    <div class="alert alert-danger" role="alert" id="customError">
+                        <h4>Error!</h4>
+                        <p>@Html.Raw(error)</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+
+                }
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAdd", data_parsley_validate = "" }))
+                {
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+
+                        <div class="form-group">
+                            Name
+                            <input type="text" class="form-control" id="Name" value="@Model.Name" name="Name" required="" data-parsley-maxlength="200" data-parsley-minlength="2" data-parsley-required-message="Alert Provider Name must be between 2 and 200 characters">
+                        </div>
+                        <div class="form-group">
+                            SMS Route
+                            <select id="SMSRouteId" name="SMSRouteId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="SMS Route is required"></select>
+                        </div>
+                        <div class="form-group">
+                            Alert Network
+                            <select id="AlertNetworkId" name="AlertNetworkId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="Alert Network is required"></select>
+                        </div>
+                        <div class="form-group">
+                            SMS Provider
+                            <select id="SMSProviderId" name="SMSProviderId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="SMS Provider is required"></select>
+                        </div>
+                        <div class="form-group">
+                            Status
+                            @Html.CheckBox("StatusVal", Model.StatusVal, new { htmlAttributes = new { @class = "form-control input-new" } })
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Add Route</button>
+                        </div>
+                    </div>
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $("#waitAdd").show();
+        InitLoad();
+        loadAll();
+
+
+        $('#frmAdd').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmAdd");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddAlertRouteRequest", "AlertRouteManager")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Alert Route Information was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+
+</script>
+<script>
+    function InitLoad() {
+        $("#SMSRouteId").html("<option value=''>Loading SMS Routes...</option>");
+        $("#SMSRouteId").prop("disabled", true);
+        $("#AlertNetworkId").html("<option value=''>Loading Alert Networks...</option>");
+        $("#AlertNetworkId").prop("disabled", true);
+        $("#SMSProviderId").html("<option value=''>Loading SMS Providers...</option>");
+        $("#SMSProviderId").prop("disabled", true);
+    }
+    function loadAll() {
+        var kounter = 0;
+        $.getJSON("@Url.Action("LoadSMSProviders", "OBusinessDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.SMSProviderId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#SMSProviderId").html(items);
+            }).done(function() {
+                $("#SMSProviderId").prop("disabled", false);
+                kounter++;
+                if (kounter === 3) {
+                    $("#waitAdd").hide();
+                }
+            });
+
+            $.getJSON("@Url.Action("LoadSMSRoutes", "OBusinessDataProvider")",
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            if (parseInt('@Model.SMSRouteId') === item.Id) {
+                                items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+
+                        });
+                    $("#SMSRouteId").html(items);
+                }).done(function() {
+                    $("#SMSRouteId").prop("disabled", false);
+                    kounter++;
+                    if (kounter === 3) {
+                        $("#waitAdd").hide();
+                    }
+            });
+
+            $.getJSON("@Url.Action("LoadAlertNetworks", "OBusinessDataProvider")",
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            if (parseInt('@Model.AlertNetworkId') === item.Id) {
+                                items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+
+                        });
+                    $("#AlertNetworkId").html(items);
+                }).done(function() {
+                    $("#AlertNetworkId").prop("disabled", false);
+                    kounter++;
+                    if (kounter === 3) {
+                        $("#waitAdd").hide();
+                    }
+            });
+    }
+</script>
+
+
+
+
+
+

@@ -1,0 +1,61 @@
+﻿
+@{
+    ViewBag.Title = "Email Confirmation";
+    Layout = "~/Views/Shared/_ConfirmMessage.cshtml";
+    var usernameInfo = ViewBag.MyUserName as string;
+    var successMessage = "CONGRATULATIONS! Your account was created successfully.  We have sent a confirmation email to your email address.  Ensure to check your SPAM / Junk mail just in case it entered as untrusted email. Kindly confirm your email in order to login to the portal. Thank you.";
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+
+<div class="row m-b-20">
+    <div class="col-sm-12">
+        <div>
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            }
+            <div class="input-group">
+                <div class="alert alert-success">
+                    <span class="text-justify"><strong>@Html.Raw(successMessage)</strong></span>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(usernameInfo) && usernameInfo.Length > 2)
+            {
+                <div id="stage1">
+                    @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "register" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("thisUsername", usernameInfo)
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <div class="pt-4">
+                                        <button class="btn btn-success text-center" type="submit">Resend Activation Email</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    }
+
+                </div>
+            }
+
+        </div>
+    </div>
+    </div>
+
+
+
+<div >
+        
+    </div>
+

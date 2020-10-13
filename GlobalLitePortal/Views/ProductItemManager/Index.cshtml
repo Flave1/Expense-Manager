@@ -1,0 +1,428 @@
+﻿@using XPLUG.WEBTOOLKIT
+@{
+    ViewBag.Title = "Product Item Management";
+    ViewBag.PgTitle = "Product Item Management";
+    var error = ViewBag.Error as string;
+    var clientVal = ViewBag.ClientId as string;
+    var prodVal = ViewBag.ProductId as string;
+    var clientId = 0;
+    var prodId = 0;
+    if (!string.IsNullOrEmpty(clientVal) && clientVal.IsNumeric())
+    {
+        clientId = int.Parse(clientVal);
+    }
+    if (!string.IsNullOrEmpty(prodVal) && prodVal.IsNumeric())
+    {
+        prodId = int.Parse(prodVal);
+    }
+}
+@Html.Partial("_WaitLoader")
+<div>
+    <h5>Registered Product Items</h5>
+</div>
+<div class="card">
+    <div class="card-header">
+        @if (!string.IsNullOrEmpty(error) && error.Length > 0)
+        {
+            <div class="row" style="width: 100%">
+                <div class="alert alert-success btn btn-sm" role="alert">
+                    @Html.Raw(error)
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div id="dvError"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-11">
+                <div class="row">
+                    <div class="col-sm-5">
+                        <select id="ClientId" name="ClientId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="Client's information is required"></select>
+                    </div>
+                    <div class="col-sm-5">
+                        <select id="ProductId" name="ProductId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="Product's information is required"></select>
+                    </div>
+                    <div class="col-sm-2 text-right">
+                        <button type="button" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnLoadProds">Load</button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-sm-1 text-right">
+                <button type="button" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnAddProd">
+                    <i class="icofont icofont-plus m-r-5"></i>New
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-block">
+        <div id="prodListView"></div>
+    </div>
+
+</div>
+
+@section scripts {
+  
+    <script>
+        $(document).ready(function () {
+            InitLoadClients();
+            loadClients();
+            InitProdList();
+
+            $('#btnLoadProds').on("click", function () {
+                ClearInlineError("dvError");
+
+                var selClient = $("#ClientId > option:selected").attr("value");
+                var selProd = $("#ProductId > option:selected").attr("value");
+                if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                    InlineErrorMessage("Invalid Client Selection!", "dvError");
+                    return false;
+                }
+
+                if (selProd === null || selProd === "" || parseInt(selProd) < 1) {
+                    InlineErrorMessage("Invalid Product Selection!", "dvError");
+                    return false;
+                }
+
+                $("#waitAdd").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("_ProductItemListView", "ProductItemManager")',
+                    data: JSON.stringify({  clientId: parseInt(selClient), prodId: parseInt(selProd) }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "html",
+                    success: function (data) {
+                        $('#prodListView').html(data);
+                    },
+                    complete: function () {
+                        $("#waitAdd").hide();
+                    }
+                });
+            });
+
+            $('#btnAddProd').on("click", function () {
+                ClearInlineError("dvError");
+
+                var selClient = $("#ClientId > option:selected").attr("value");
+                var selProd = $("#ProductId > option:selected").attr("value");
+                var selClientName = $("#ClientId option:selected").text();
+                var selProdName = $("#ProductId option:selected").text();
+               
+
+                if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                    InlineErrorMessage("Please select a Client!", "dvError");
+                    return false;
+                }
+
+                if (selProd === null || selProd === "" || parseInt(selProd) < 1) {
+                    InlineErrorMessage("Please select a Product!", "dvError");
+                    return false;
+                }
+                
+                if (selClientName === undefined || selClientName === null || selClientName === "" || selClientName.length < 1) {
+                    InlineErrorMessage("Please select a Client!", "dvError");
+                    return false;
+                }
+
+                if (selProdName === undefined || selProdName === null || selProdName === "" || selProdName.length < 1) {
+                    InlineErrorMessage("Please select a Product!", "dvError");
+                    return false;
+                }
+
+                var encoded = encodeURIComponent(selClientName);
+                var encoded2 = encodeURIComponent(selProdName);
+                
+                var url = '@Url.Action("AddProduct", "ProductItemManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) + "&clientName=" + encoded + "&productName=" + encoded2;
+
+                $("#waitAdd").show();
+
+                window.location.href = url;
+               
+                $("#waitAdd").hide();
+
+            });
+           
+        });
+    </script>
+    <script>
+        function InitProdList() {
+
+
+            var selClient = '@clientId'; 
+            var selProd = '@prodId';
+            if (parseInt(selClient) < 1) {
+                return;
+            }
+
+            if ( parseInt(selProd) < 1) {
+                return;
+            }
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_ProductItemListView", "ProductItemManager")',
+                data: JSON.stringify({  clientId: parseInt(selClient), prodId: parseInt(selProd) }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "html",
+                success: function (data) {
+                    $('#prodListView').html(data);
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+        }
+
+        function InitAdd() {
+            $("#ClientId").html("<option value=''>Loading Clients...</option>");
+            $("#ClientId").prop("disabled", true);
+            $("#ProductId").html("<option value=''>-- Empty List --</option>");
+            $("#ProductId").prop("disabled", true);
+        }
+
+        function InitLoadClients() {
+            $("#ClientId").html("<option value=''>Loading Clients...</option>");
+            $("#ClientId").prop("disabled", true);
+            $("#ProductId").html("<option value=''>-- Empty List --</option>");
+            $("#ProductId").prop("disabled", true);
+        }
+
+        function loadClients() {
+            $.getJSON("@Url.Action("LoadClients", "PDataProvider")",
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            if (parseInt('@clientId') === item.Id) {
+                                items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                                if (parseInt('@clientId') > 0) {
+                                    loadProducts(parseInt('@clientId'));
+                                }
+                                
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+
+                        });
+                    $("#ClientId").html(items);
+                }).done(function() {
+                $("#ClientId").prop("disabled", false);
+            });
+        }
+        $("#ClientId").change(function () {
+            var selClient = $("#ClientId > option:selected").attr("value");
+            loadProducts(selClient);
+        });
+
+        function loadProducts(clientId) {
+            $("#ProductId").html("<option value=''>Loading Products...</option>");
+            $("#ProductId").prop("disabled", true);
+            $.getJSON("@Url.Action("LoadUserClientProducts", "ODataProvider")?clientId=" + parseInt(clientId),
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            if (parseInt('@prodId') === item.Id) {
+                                if (item.Id === 0) {
+                                    items += "<option value='' > -- Please Select -- </option>";
+                                } else {
+
+                                    items += "<option value='" +
+                                        item.Id +
+                                        "' selected='selected'>" +
+                                        item.Name +
+                                        "</option>";
+                                   
+                                }
+
+                            } else if (item.Id === 0) {
+                                items += "<option value='' > -- Please Select -- </option>";
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+                        });
+                    $("#ProductId").html(items);
+                }).done(function() {
+                $("#ProductId").prop("disabled", false);
+            });
+        }
+
+        function deleteItem(id) {
+            if (id === "" || parseInt(id) < 1) {
+                InlineErrorMessage(data.Error ? data.Error : "Invalid Selection!", "dvError");
+                return false;
+            }
+
+            var selClient = $("#ClientId > option:selected").attr("value");
+            var selProd = $("#ProductId > option:selected").attr("value");
+            var selClientName = $("#ClientId option:selected").text();
+            var selProdName = $("#ProductId option:selected").text();
+               
+
+            if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                InlineErrorMessage("Please select a Client!", "dvError");
+                return false;
+            }
+
+            if (selProd === null || selProd === "" || parseInt(selProd) < 1) {
+                InlineErrorMessage("Please select a Product!", "dvError");
+                return false;
+            }
+                     
+                
+            var url = '@Url.Action("Index", "ProductItemManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd);
+
+
+            if (!confirm("Are you sure you want to delete this item?")) {
+                return false;
+            }
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessDeleteRequest", "ProductItemManager")',
+                data: { clientId: parseInt(selClient), prodId: parseInt(selProd), itemId: parseInt(id) }, //JSON.stringify(),
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               windows.location.href = '@Url.Action("index", "ProductItemManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) + "&itemId=" + parseInt(id) + "&clientName=" + encoded + "&productName=" + encoded2;
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Product Item Information was deleted successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.href = url;
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+            return false;
+        }
+
+        function editItem(id) {
+            if (id === "" || parseInt(id) < 1) {
+                InlineErrorMessage(data.Error ? data.Error : "Invalid Item Selection!", "dvError");
+                return false;
+            }
+          
+            ClearInlineError("dvError");
+
+            var selClient = $("#ClientId > option:selected").attr("value");
+            var selProd = $("#ProductId > option:selected").attr("value");
+            var selClientName = $("#ClientId option:selected").text();
+            var selProdName = $("#ProductId option:selected").text();
+               
+
+            if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                InlineErrorMessage("Please select a Client!", "dvError");
+                return false;
+            }
+
+            if (selProd === null || selProd === "" || parseInt(selProd) < 1) {
+                InlineErrorMessage("Please select a Product!", "dvError");
+                return false;
+            }
+            
+            if (selClientName === undefined || selClientName === null || selClientName === "" || selClientName.length < 1) {
+                InlineErrorMessage("Please select a Client!", "dvError");
+                return false;
+            }
+
+            if (selProdName === undefined || selProdName === null || selProdName === "" || selProdName.length < 1) {
+                InlineErrorMessage("Please select a Product!", "dvError");
+                return false;
+            }
+
+            var encoded = encodeURIComponent(selClientName);
+            var encoded2 = encodeURIComponent(selProdName);
+                
+            var url = '@Url.Action("EditProduct", "ProductItemManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) + "&itemId=" + parseInt(id) + "&clientName=" + encoded + "&productName=" + encoded2;
+
+
+            $("#waitAdd").show();
+
+            window.location.href = url;
+               
+            $("#waitAdd").hide();
+        }
+
+        function itemDetail(id) {
+            if (id === "" || parseInt(id) < 1) {
+                InlineErrorMessage(data.Error ? data.Error : "Invalid Selection!", "dvError");
+                return false;
+            }
+          
+            ClearInlineError("dvError");
+
+            var selClient = $("#ClientId > option:selected").attr("value");
+            var selProd = $("#ProductId > option:selected").attr("value");
+            var selClientName = $("#ClientId option:selected").text();
+            var selProdName = $("#ProductId option:selected").text();
+               
+
+            if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                InlineErrorMessage("Please select a Client!", "dvError");
+                return false;
+            }
+
+            if (selProd === null || selProd === "" || parseInt(selProd) < 1) {
+                InlineErrorMessage("Please select a Product!", "dvError");
+                return false;
+            }
+            
+            if (selClientName === undefined || selClientName === null || selClientName === "" || selClientName.length < 1) {
+                InlineErrorMessage("Please select a Client!", "dvError");
+                return false;
+            }
+
+            if (selProdName === undefined || selProdName === null || selProdName === "" || selProdName.length < 1) {
+                InlineErrorMessage("Please select a Product!", "dvError");
+                return false;
+            }
+
+            var encoded = encodeURIComponent(selClientName);
+            var encoded2 = encodeURIComponent(selProdName);
+                
+            var url = '@Url.Action("ProductDetail", "ProductItemManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) + "&itemId=" + parseInt(id) + "&clientName=" + encoded + "&productName=" + encoded2;
+
+            $("#waitAdd").show();
+
+            window.location.href = url;
+               
+            $("#waitAdd").hide();
+        }
+    </script>
+    
+
+}

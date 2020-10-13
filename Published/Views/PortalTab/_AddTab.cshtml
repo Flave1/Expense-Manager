@@ -1,0 +1,285 @@
+﻿@using PluglexHelper.PortalObjs
+@using XPLUG.WEBTOOLKIT
+@model  JetSetupPortal.PortalCore.Model.PortalRoleViewModel
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+
+
+
+
+<!-- Change class .modal-sm to change the size of the modal -->
+<div class="modal-dialog modal-md" role="document">
+
+
+    <div class="modal-content">
+        <div class="modal-header unique-color text-white">
+            <span class="modal-title w-100" id="AddModalLabel">Add Item</span>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            }
+            else
+            {
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAddTab", data_parsley_validate = "" }))
+                {
+                    @Html.Hidden("AllRoles", Model.AllRoles)
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div id="dvError"></div>
+
+                        <div class="form-group">
+                            Tab Parent
+                            <select id="TabParentId" name="TabParentId" class="form-control input-new" style="width: 100%"></select>
+                        </div>
+                        <div class="form-group">
+                            Tab Title
+                            <input type="text" class="form-control input-new" value="@Model.Title" id="Title" name="Title" required="" data-parsley-required-message="Tab Title is required">
+                        </div>
+                        <div class="form-group">
+                            Tab Type
+                            @Html.DropDownListFor(x => x.TabType, new SelectList(typeof(TabTypeEnum).ToNameValueList(), "Id", "Name", Model.TabType), "-- Please select --", new { @class = "form-control input-new" })
+                        </div>
+                        <div class="form-group">
+                            Tab Link <i>(action|controller|area)</i>
+                            <input type="text" class="form-control input-new" value="@Model.ContentUrl" id="ContentUrl" name="ContentUrl">
+                        </div>
+                        <div class="form-group">
+                            Tab Icon
+                            <input type="text" class="form-control input-new" value="@Model.LeftPanelUrl" id="LeftPanelUrl" name="LeftPanelUrl">
+                        </div>
+                        <div class="form-group">
+                            Tab Roles
+                            @Html.CheckBoxListFor("MyRoleIds", @Html.GetTabRoleListByIds(model => model.MyRoleIds, Model.AllRoles), 3, RepeatedDirection.Horizontal)
+                        </div>
+                        <div class="form-group">
+                            Tab Order
+                            <input type="number" class="form-control input-new" value="@Model.TabOrder" id="TabOrder" name="TabOrder" required="" data-parsley-required-message="Tab Order is required">
+                        </div>
+                        <div class="form-group">
+                            Status
+                            @Html.CheckBox("StatusVal", Model.StatusVal, new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success btn-sm" id="btnUpdate">Add Tab</button>
+                        </div>
+
+                    </div>
+                }
+
+
+            }
+
+        </div>
+        @*<div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-success btn-sm">Save</button>
+        </div>*@
+    </div>
+</div>
+
+
+
+
+
+
+@*<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">New Portal Tab</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            }
+            else
+            {
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAddTab", data_parsley_validate = "" }))
+                {
+                    @Html.Hidden("AllRoles", Model.AllRoles)
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div id="dvError"></div>
+
+                        <div class="form-group">
+                            Tab Parent
+                            <select id="TabParentId" name="TabParentId" class="form-control" style="width: 100%"></select>
+                        </div>
+                        <div class="form-group">
+                            Tab Title
+                            <input type="text" class="form-control " value="@Model.Title" id="Title" name="Title" required="" data-parsley-required-message="Tab Title is required">
+                        </div>
+                        <div class="form-group">
+                            Tab Type
+                            @Html.DropDownListFor(x => x.TabType, new SelectList(typeof(TabTypeEnum).ToNameValueList(), "Id", "Name", Model.TabType), "-- Please select --", new { @class = "form-control" })
+                        </div>
+                        <div class="form-group">
+                            Tab Link <i>(action|controller|area)</i>
+                            <input type="text" class="form-control " value="@Model.ContentUrl" id="ContentUrl" name="ContentUrl">
+                        </div>
+                        <div class="form-group">
+                            Tab Icon
+                            <input type="text" class="form-control " value="@Model.LeftPanelUrl" id="LeftPanelUrl" name="LeftPanelUrl">
+                        </div>
+                        <div class="form-group">
+                            Tab Roles
+                            @Html.CheckBoxListFor("MyRoleIds", @Html.GetTabRoleListByIds(model => model.MyRoleIds, Model.AllRoles), 3, RepeatedDirection.Horizontal)
+                        </div>
+                        <div class="form-group">
+                            Tab Order
+                            <input type="number" class="form-control " value="@Model.TabOrder" id="TabOrder" name="TabOrder" required="" data-parsley-required-message="Tab Order is required">
+                        </div>
+                        <div class="form-group">
+                            Status
+                            @Html.CheckBox("StatusVal", Model.StatusVal, new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success" id="btnUpdate">Add Tab</button>
+                        </div>
+
+                    </div>
+                }
+
+
+            }
+
+        </div>
+
+    </div>
+</div>*@
+
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+<script>
+    $(document).ready(function () {
+        loadParentTabs();
+        $('#frmAddTab').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmAddTab");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddTabRequest", "PortalTab")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Tab was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $(".loader").hide();
+                    $("#loadingMessage").html("");
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+    function loadParentTabs() {
+        $.getJSON("@Url.Action("LoadTabParents", "PDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.TabParentId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#TabParentId").html(items);
+            });
+    }
+</script>
+
+
+
+
+
+
+
+

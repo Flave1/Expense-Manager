@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="icon" href="~/Content/assets/images/favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+    <link href="~/Content/skin2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Content/skin2/css/mdb.min.css" rel="stylesheet">
+    <link href="~/Content/skin2/css/style.css" rel="stylesheet">
+    <style>
+        .bg-auth {
+            background-image: url(/Content/skin2/img/loginbg.jpg) !important;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body class="bg-auth">
+    <div style="height: 100vh">
+        <div class="flex-center flex-column">
+            <div class=".z-depth-4 p-3 log-div">
+                <div class="">
+                    <h3 class="text-white p-4">@ViewBag.AuthTitle</h3>
+                    @RenderBody()
+                </div>
+            </div>
+            <img src="~/Content/skin2/img/logo-n.png" class="mt-4" alt="" width="200" />
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="~/Content/skin2/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="~/Content/skin2/js/popper.min.js"></script>
+    <script type="text/javascript" src="~/Content/skin2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="~/Content/skin2/js/mdb.min.js"></script>
+
+</body>
+
+</html>
+

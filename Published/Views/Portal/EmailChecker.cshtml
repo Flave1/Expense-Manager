@@ -1,0 +1,32 @@
+﻿@model JetSetupPortal.PortalCore.Model.PasswordRetrievalContract
+@{
+    ViewBag.Title = "Email Checker";
+    ViewBag.AuthTitle = "Email Checker";
+    Layout = "~/Views/Shared/_AuthorizeLayout.cshtml";
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+
+
+@if (hasError)
+{
+    <div class="alert alert-danger" role="alert" id="customError">
+        <h4>Error!</h4>
+        <p>@Html.Raw(error)</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+    </div>
+}
+
+<div class="row m-t-30">
+    <div class="col-md-12">
+        <button type="button" class="btn btn-primary btn-md btn-block waves-effect text-center m-b-20" onclick="returnHome();">Login</button>
+    </div>
+</div>
+
+<script>
+    function returnHome() {
+        return window.location.href = '@Url.Action("Login", "Portal", new { Area = "" })';
+    }
+</script>

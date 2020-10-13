@@ -1,0 +1,296 @@
+﻿@using GlobalLitePortalHelper.APICore
+@using GlobalLitePortalHelper.APIObjs
+@model PlugLitePortalHelper.APIObjs.RegWorkflowDetailObj
+@{
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+    decimal amount = 0;
+    string dateIniated = "";
+
+
+
+    var currentTask = (WorkflowTaskObj)Session["_CurrentSelWorkflowTask_"];
+    if (currentTask == null)
+    {
+        currentTask = new WorkflowTaskObj();
+    }
+
+    var workflowDetailAmount = (List<ExpenseRequisitionObj>)Session["_ExpenseRequisitionList_"];
+    if (workflowDetailAmount == null)
+    {
+        workflowDetailAmount = new List<ExpenseRequisitionObj>();
+    }
+    else
+    {
+        amount = workflowDetailAmount.SingleOrDefault(m => m.ExpenseRequisitionId == currentTask.ExpenseRequisitionId).TotalAmount;
+        dateIniated = workflowDetailAmount.SingleOrDefault(m => m.ExpenseRequisitionId == currentTask.ExpenseRequisitionId).TimeStampRegistered;
+    }
+
+    var usersList = (List<PluglexHelper.PortalObjs.UserItemObj>)Session["_UserList_"];
+    if (usersList == null)
+    {
+        usersList = new List<PluglexHelper.PortalObjs.UserItemObj>();
+    }
+    var approved = WorkflowStatus.Approved;
+    var queried = WorkflowStatus.Queried;
+    var denied = WorkflowStatus.Denied;
+    var approvedValue = (int)WorkflowStatus.Approved;
+    var queriedValue = (int)WorkflowStatus.Queried;
+    var deniedValue = (int)WorkflowStatus.Denied;
+}
+@Html.Partial("_WaitLoader")
+@*<div class="col-sm-3 pull-right text-right" style="float:right">
+        <button type="button" class="btn btn-secondary btn-sm waves-effect waves-light d-inline-block md-trigger pull-right" onclick="back()">
+            <i class="icofont icofont-plus m-r-5"></i>Back
+        </button>
+    </div>*@
+<div class="card col-10" style="margin:auto;">
+
+    @if (hasSessionError)
+    {
+        <div class="alert alert-danger" role="alert" id="customError">
+            <p>@Html.Raw(sessionError)</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+
+    }
+    else
+    {
+
+        <div class="card-header">
+            <div>
+                @Html.Action("RecommendationList", "WorkflowTaskManager", new { ExpenseRequisitionId = currentTask.ExpenseRequisitionId })
+            </div>
+
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-9 form-group">
+                        <div id="dvError"></div>
+                    </div>
+                </div>
+
+            }
+
+
+        </div>
+        <div class="card-block" style="margin-top: 15px">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "fromAdd", data_parsley_validate = "" }))
+            {
+                <div class="col-md-12 col-sm-12">
+                    <div id="dvError"></div>
+
+
+
+                    <table class="table table-sm table-dark">
+                        <tbody>
+                            <tr>
+                                <td> <b>Assignee Email :</b>  </td>
+                                <td> @currentTask.AssigneeEmail</td>
+                            </tr>
+                            <tr>
+                                <td> <b>Beneficiary :</b> </td>
+                                <td> @Model.BeneficiaryName</td>
+                            </tr>
+                            <tr>
+                                <td> <b>Task Description :</b>  </td>
+                                <td> @currentTask.TaskDescription</td>
+                            </tr>
+                            <tr>
+                                <td> <b>Requisition Remark :</b>  </td>
+                                <td> @Model.GeeneralRemark</td>
+                            </tr>
+                            <tr>
+                                <td> <b>Amount :</b>  </td>
+                                <td> @amount</td>
+                            </tr>
+
+                            <tr>
+                                <td> <b>Date Initiated :</b>  </td>
+                                <td> @dateIniated</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="form-group">
+                        <b class="label-default">Recommendation :</b>
+                        <textarea id="RecommendationId" class="form-control" name="Recommendation" rows="4">@Model.Recommendation</textarea>
+                    </div>
+
+                    <div class="row container">
+                        <div class="col-4">
+                            <input type="radio" name="Status" for="check1" value="@approvedValue" class="form-radio">
+                            <label class="form-check-label">@approved</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" name="Status" for="check2" value="@queriedValue" class="form-radio">
+                            <label class="form-check-label"> @queried</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" name="Status" for="check3" value="@deniedValue" class="form-radio">
+                            <label class="form-check-label">@denied</label>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="back()" data-dismiss="modal">Back</button>
+                        <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+    }
+
+
+</div>
+@section scripts {
+    <script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+    <script>
+        $(document).ready(function () { 
+        $("#HideBtn").hide();
+
+            $('#fromAdd').parsley().on('field:validated', function() {
+                var ok = $('.parsley-error').length === 0;
+                if (!ok) {
+                    InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                    return false;
+                }
+            }).on('form:submit', function () {
+                ClearInlineError("dvError");
+                var status = $('input[name="Status"]:checked').val();
+                var textArea = $('textarea#RecommendationId').val();
+                if (textArea === "") {
+                    swal("Recommendation reuired for this requisition!");
+                    return false;
+                } 
+                var statusName = "";
+                var responseName = "";
+                if (status === undefined) {
+                    swal("Please choose an action for this requisition!");
+                    return false;
+                }
+
+                switch (parseInt(status)) {
+                    case 2:
+                        statusName = "approve";
+                        responseName = "approved";
+                        break;
+                    case 3:
+                        statusName = "deny";
+                        responseName = "denied";
+                        break;
+                    case 4:
+                        statusName = "query";
+                        responseName = "queried";
+                        break;
+                }
+               
+
+             
+                swal({
+                          title: "Are you sure?",
+                          text: "You are about to  "+statusName+" this requisition",
+                          type: "warning",
+                          showCancelButton: true,
+                          confirmButtonClass: "btn-danger",
+                          confirmButtonText: "Yes, "+statusName+" it!",
+                          cancelButtonText: "No, cancel pls!",
+                          closeOnConfirm: false,
+                          closeOnCancel: false
+                        },
+                        function(isConfirm) {
+                            if (!isConfirm) {
+                                swal("Cancelled", "You canceled this requisition", "error");
+                                return false;
+                            } else {
+
+                  var frm = $("#fromAdd");
+
+                if (frm == null) {
+                    InlineErrorMessage("Invalid  Information", "dvError");
+                    return false;
+                }
+
+                if (!frm.valid()) {
+                    InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                    return false;
+                }
+
+                var urlBack = '@Url.Action("Index", "WorkflowTaskManager")?clientId=' + parseInt('@currentTask.ClientId') + "&productId=" + parseInt('@currentTask.ProductId');
+
+
+                var params = frm.serializeArray();
+
+                $("#waitAdd").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("ProcessAddWorkflowDetailRequest", "WorkflowDetailManager")',
+                    data: params,
+                    success: function (data) {
+                        if (!data.IsAuthenticated) {
+                            window.location.href = "@Url.Action("Login", "Portal")";
+                            return;
+                        }
+                        if (!data.IsSuccessful) {
+                            InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                            swal({
+                                title: "",
+                                text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                                type: "error",
+                                showCancelButton: false,
+                                confirmButtonText: "Close",
+                                closeOnConfirm: true,
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+
+                                }
+                            });
+
+                        } else {
+                            swal("!" + responseName, "You have successfully " + responseName + " this requisition.", "success"); 
+                            window.location.href = urlBack;
+                        }
+                    },
+                    complete: function () {
+                        $("#waitAdd").hide();
+                    }
+                });
+                return false;
+
+
+
+                              
+                          }
+                    });
+                return false;
+                
+
+           
+            });
+        });
+
+        function back() {
+            var url = '@Url.Action("Index", "WorkflowTaskManager")?clientId=' + parseInt('@currentTask.ClientId') + "&productId=" + parseInt('@currentTask.ProductId');
+            window.location.href =url;
+        }
+    </script>
+
+
+
+}
+
+
+

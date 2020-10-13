@@ -1,0 +1,238 @@
+﻿@model IEnumerable<GlobalLitePortalHelper.APIObjs.BeneficiaryObj>
+@using XPLUG.WEBTOOLKIT
+@{
+    ViewBag.Title = "Beneficiary Management";
+    ViewBag.PgTitle = "Beneficiary Management";
+    var error = ViewBag.Error as string;
+     
+
+}
+
+<b><h3>Beneficiaries</h3></b>
+<div class="card">
+    <div class="card-header">
+        <div class="row text-right" > 
+            <div class="col-8">
+                <button type="button" class="btn btn-yellow btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnLoad">
+                    <i class="icofont icofont-plus m-r-5"></i>RELOAD
+                </button>
+            </div>
+            <div class="col-4  ">
+
+                <button type="button" class="btn btn-yellow btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnAddNewItem">
+                    <i class="icofont icofont-plus m-r-5"></i>New
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-block">
+        @if (!string.IsNullOrEmpty(error) && error.Length > 0)
+        {
+            <div class="alert alert-success btn btn-sm" role="alert">
+                @Html.Raw(error)
+            </div>
+        }
+        <div class="table-responsive">
+            <table id="dtBasicExample" class="table table-striped table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th> Company Name</th>
+                        <th> First Name  </th>
+                        <th>  Last Name </th>
+                        <th>  Middle Name </th>
+                        <th>Status</th>
+                        <th class="tabledit-toolbar-column">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int k = 1;
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <th>@k</th>
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.CompanyName
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.FirstName
+                                    </span>
+
+                                </td>
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.LastName
+                                    </span>
+
+                                </td>
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.MiddleName
+                                    </span>
+
+                                </td>
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.StatusLabel
+                                    </span>
+
+                                </td>
+                                <td>
+                                    <div class="tabledit-toolbar btn-toolbar">
+
+                                        <span class="p-1"><a href="@Url.Action("_EditBeneficiary", "BeneficiaryManager", new {BeneficiaryId = item.BeneficiaryId})" data-modal="" data-toggle="tooltip" title="Edit"><i class="far fa-edit"></i></a></span>
+            
+
+                                    </div>
+
+
+                                </td>
+
+                            </tr>
+                            k++;
+                        }
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts {
+
+    <script>
+        $(document).ready(function () {
+
+
+
+
+            $('#btnLoad').on("click", function () {
+                ClearInlineError("dvError");
+
+                 var selClient = localStorage["_ClientID_"];
+                var selProd = localStorage["_ProductID_"]; 
+
+                if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                    InlineErrorMessage("Please select a Client!", "dvError");
+                    return false;
+                }
+
+                if (selProd === null || selProd === "" || parseInt(selProd) < 1) {
+                    InlineErrorMessage("Please select a Product!", "dvError");
+                    return false;
+                }
+                
+
+                var url = '@Url.Action("Index", "BeneficiaryManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) ;
+
+                $("#waitAdd").show();
+
+                window.location.href = url;
+
+                $("#waitAdd").hide();
+
+            });
+
+        });
+    </script>
+    <script>
+
+
+
+          $('#btnAddNewItem').on("click", function () {
+                ClearInlineError("dvError");
+
+                var selClient = localStorage["_ClientID_"];
+                var selProd = localStorage["_ProductID_"]; 
+
+                if (selClient === null || selClient === "" || parseInt(selClient) < 1) {
+                    InlineErrorMessage("Please select a Client!", "dvError");
+                    return false;
+                }
+
+                if (selProd === null || selProd === "" || parseInt(selProd) < 1) {
+                    InlineErrorMessage("Please select a Product!", "dvError");
+                    return false;
+                }
+               
+                var url = '@Url.Action("AddBeneficiary", "BeneficiaryManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) ;
+
+                $("#waitAdd").show();
+
+                window.location.href = url;
+
+                $("#waitAdd").hide();
+
+            });
+
+
+    </script>
+
+
+
+
+    <script>
+        function deleteItem(id) {
+            if (id === "" || parseInt(id) < 1) {
+                InlineErrorMessage(data.Error ? data.Error : "Invalid Selection!", "dvError");
+                return false;
+            }
+            if (!confirm("Are you sure you want to delete this item?")) {
+                return false;
+            }
+
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessDeleteRequest", "BeneficiaryManager")',
+                data: { BeneficiaryId: parseInt(id) }, //JSON.stringify(),
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Beneficiary Information was deleted successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    // $("#waitAdd").hide();
+
+                }
+            });
+            return false;
+        }
+    </script>
+}

@@ -1,0 +1,244 @@
+﻿@using GlobalLitePortalHelper.APICore
+@model GlobalLitePortalHelper.APIObjs.RegRequestTypeSettingObj
+@{
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+}
+
+@Html.Partial("_WaitLoader") 
+    <div class="card col-6" style="margin:auto;">
+        <div>
+            <h5>Request Type Setting</h5>
+        </div>
+        @if (hasSessionError)
+        {
+            <div class="alert alert-danger" role="alert" id="customError">
+                <p>@Html.Raw(sessionError)</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+
+        }
+        else
+        {
+
+            <div class="card-header">
+
+
+                @if (hasError)
+                {
+                    <div class="alert alert-danger" role="alert" id="customError">
+                        <p>@Html.Raw(error)</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-9 form-group">
+                            <div id="dvError"></div>
+                        </div>
+
+                    </div>
+
+                }
+
+
+            </div>
+            <div class="card-block" style="margin-top: 15px">
+                @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "fromAdd", data_parsley_validate = "" }))
+                {
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+                        <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                        <input type="hidden" name="ProductItemId" value="@Model.ProductItemId" />
+                        <input type="hidden" name="ClientId" value="@Model.ClientId" />
+
+                        <div class="form-group row">
+                            <div class="col-sm-6  ">
+                                <label>Type</label>
+                                @Html.DropDownList("RequestType", EnumHelper.GetSelectList(typeof(RequestType)), "Request Type", new { @id = "RequestType", @class = "form-control input-new" })
+                            </div>
+                            <div class="col-sm-6 ">
+                                <label>Amount Allowed </label>
+                                <input type="text" class="form-control" id="AmountAllowed" value="@Model.AmountAllowed" name="AmountAllowed" required="" data-parsley-maxlength="200" data-parsley-minlength="1" data-parsley-required-message="AmountAllowed must be between 2 and 200 characters">
+                            </div>
+
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-sm-6  ">
+                                <label>Duration</label>
+                                <input type="text" class="form-control" id="AllowedTaskTimeSpan" value="@Model.AllowedTaskTimeSpan" name="AllowedTaskTimeSpan" required="" data-parsley-maxlength="200" data-parsley-minlength="1" data-parsley-required-message="AllowedTaskTimeSpan must be between 2 and 200 characters">
+                            </div>
+                            <div class="col-sm-6  ">
+                                <label>Type</label>
+                                @Html.DropDownList("RequestFrequencyType", EnumHelper.GetSelectList(typeof(RequestFrequencyType)), "Request Frequency Type", new { @id = "RequestFrequencyType", @class = "form-control input-new" })
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary  waves-effect waves-light d-inline-block md-trigger pull-right" onclick="back()">
+                                <i class="icofont icofont-plus m-r-5"></i>Back
+                            </button>
+                            <button type="submit" id="btnAdd" class="btn btn-success">Add    </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+        }
+
+
+    </div>
+@section scripts {
+    <script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+             
+            $('#btnBackToProd').on("click", function () {
+                ClearInlineError("dvError");
+                var selClient = '@Model.ClientId';
+                var selProd = '@Model.ProductId';
+                var clientId = 0;
+                var prodId = 0;
+                if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                    clientId = 0;
+                } else {
+                    clientId = parseInt(selClient);
+                }
+
+                if (selProd === "" || selProd.length < 1 || parseInt(selProd) < 1) {
+                    prodId = 0;
+                } else {
+                    prodId = parseInt(selProd);
+                }
+
+                var url = '@Url.Action("Index", "RequestTypeSettingManager")?clientId=' + clientId + "&productId=" + prodId;
+
+                $("#waitAdd").show();
+
+                window.location.href = url;
+
+                $("#waitAdd").hide();
+            });
+
+            $('#fromAdd').parsley().on('field:validated', function() {
+                var ok = $('.parsley-error').length === 0;
+                if (!ok) {
+                    InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                    return false;
+                }
+            }).on('form:submit', function () {
+                ClearInlineError("dvError");
+
+                var selClient = '@Model.ClientId';
+                var selProd = '@Model.ProductId';
+                var selProdItem = '@Model.ProductItemId';
+                var clientId = 0;
+                var prodId = 0;
+                if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                    clientId = 0;
+                } else {
+                    clientId = parseInt(selClient);
+                }
+
+                if (selProd === "" || selProd.length < 1 || parseInt(selProd) < 1) {
+                    prodId = 0;
+                } else {
+                    prodId = parseInt(selProd);
+                }
+
+                if (clientId < 1) {
+                    InlineErrorMessage("Invalid Client Information", "dvError");
+                    return false;
+                }
+
+                if (prodId < 1) {
+                    InlineErrorMessage("Invalid Product Information", "dvError");
+                    return false;
+                }
+
+                var frm = $("#fromAdd");
+
+                if (frm == null) {
+                    InlineErrorMessage("Invalid Product Information", "dvError");
+                    return false;
+                }
+
+                if (!frm.valid()) {
+                    InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                    return false;
+                }
+
+                var url = '@Url.Action("AddRequestTypeSetting", "RequestTypeSettingManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd);
+                var urlBack = '@Url.Action("Index", "RequestTypeSettingManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd);
+
+                var params = frm.serializeArray();
+
+                $("#waitAdd").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("ProcessAddRequestTypeSettingRequest", "RequestTypeSettingManager")',
+                    data: params,
+                    success: function (data) {
+                        if (!data.IsAuthenticated) {
+                            window.location.href = "@Url.Action("Login", "Portal")";
+                            return;
+                        }
+                        if (!data.IsSuccessful) {
+                            InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                            swal({
+                                title: "",
+                                text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                                type: "error",
+                                showCancelButton: false,
+                                confirmButtonText: "Close",
+                                closeOnConfirm: true,
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+
+                                }
+                            });
+
+                        } else {
+                            $('#dvModal').modal('hide');
+                            swal({
+                                title: "",
+                                text: "Successfully added",
+                                type: "success",
+                                showCancelButton: false,
+                                confirmButtonText: "Ok",
+                                closeOnConfirm: false,
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+                                    window.location.href = urlBack;
+                                }
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#waitAdd").hide();
+                    }
+                });
+                return false;
+            });
+        });
+
+        function back() {
+            var url = '@Url.Action("Index", "RequestTypeSettingManager")?clientId=' + parseInt('@Model.ClientId') + "&productId=" + parseInt('@Model.ProductId');
+            window.location.href =url;
+        }
+    </script>
+
+ 
+
+}
+
+
+

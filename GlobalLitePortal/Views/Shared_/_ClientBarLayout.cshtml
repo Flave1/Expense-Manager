@@ -1,0 +1,29 @@
+﻿@using GlobalLitePortal.PortalCore.Model
+
+@{
+    var userData = MvcApplication.GetUserData(User.Identity.Name) ?? new UserData();
+    var tabs = MvcApplication.GetPortalTabData(User.Identity.Name);
+    var userRoleList = new List<string>();
+    if (userData.UserId > 0)
+    {
+        userRoleList = userData.Roles.ToList();
+    }
+
+}
+
+<div class="clientDiv">
+    <div class="row">
+        <div class="col-md-4">
+            test
+        </div>
+        <div class="col-md-4">
+            test
+        </div>
+        <div class="col-md-4">
+            <span class="float-right">
+                <span><img src="~/Content/skin2/img/user.png" alt="User-Profile-Image" width="30"></span>
+                <span>@userData.Email</span>
+            </span>
+        </div>
+    </div>
+</div>

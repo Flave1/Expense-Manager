@@ -1,0 +1,78 @@
+﻿@using PlugLitePortalHelper.APIObjs
+@using GlobalLitePortalHelper.APICore
+@model IEnumerable<PlugLitePortalHelper.APIObjs.WorkflowDetailObj>
+@{
+    var appLevels = (List<WorkFlowApprovalLevelObj>)Session["_ApprovalLevels_"];
+    if (appLevels == null)
+    {
+        appLevels = new List<WorkFlowApprovalLevelObj>();
+    }
+    var userList = (List<PluglexHelper.PortalObjs.UserItemObj>)Session["_UserList_"];
+    if(userList == null)
+    {
+        userList = new List<PluglexHelper.PortalObjs.UserItemObj>();
+    }
+}
+
+ 
+ 
+    <div class="accordion col-xl-12 " id="accordionExample" style="margin-top:2%; ">
+        <button type="button" class="close " data-dismiss="modal" id="HideBtn" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        @foreach (var item in Model.OrderByDescending(m => m.WorkflowDetailId))
+        {
+
+
+    <div class="card col-lg-12 col-md-4">
+        <div class="card-header " id="headingOne">
+            <h5 class="mb-0">
+                <strong class="btn-sm border-0" type="button" data-toggle="collapse" data-target="#wert" aria-expanded="true" aria-controls="collapseOne">
+                  
+                        <span> @appLevels.FirstOrDefault(m => m.WorkFlowApprovalLevelId == item.ApprovalLevelId).Name </span><br />
+                
+                </strong>
+                <span style="font-size:15px;"> <small>Status  : @(((WorkflowStatus)item.Status).ToString())</small>       </span><br />
+            </h5>
+        </div>
+
+        <div id="wert" class="collapse hide" aria-labelledby="headingOne" data-parent="#accordionExample">
+
+            <div class="card-body">
+
+                <table class="table table-sm table-dark">
+                    <tbody>
+                        <tr>
+                            <td> <b>Name :</b>  </td>
+                            <td>
+                                @foreach (var user in userList.Where(m => m.UserId == item.AssigneeId))
+                                {
+                                <span> @(user.FirstName + " " + user.LastName)</span>
+                                }
+
+                            </td>
+                        </tr>
+                       <tr>
+                           <td><b>Remark :</b> </td>
+                           <td> @item.Recommendation</td>
+                       </tr>
+
+                    </tbody>
+                </table>
+
+                
+
+            </div>
+            
+
+        </div>
+
+
+       
+
+
+    </div>
+        }
+
+
+    </div>  

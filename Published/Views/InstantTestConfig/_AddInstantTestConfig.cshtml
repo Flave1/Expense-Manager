@@ -1,0 +1,276 @@
+﻿
+
+@model JetSetupPortalHelper.APIObjs.RegInstantTestConfigObj
+@{
+    /**/
+
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Add InstantTestConfig</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAdd", data_parsley_validate = "" }))
+                {
+        <div class="col-md-12 col-sm-12">
+            <div id="dvError"></div>
+            <div class="row">
+                <div class="form-group">
+                    Session Name
+                    <select id="AppSessionId" name="AppSessionId" class="form-control" style="width: 100%"></select>
+                </div>
+                <div class="form-group">
+                    Session Code
+                    <select id="SessionCode" name="SessionCode" class="form-control" style="width: 100%"></select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    Client Name
+                    <select id="ClientId" name="ClientId" class="form-control" style="width: 100%"></select>
+                </div>
+                <div class="form-group">
+                    Product Name
+                    <select id="ClientId" name="ProductId" class="form-control" style="width: 100%"></select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    Title
+                    <input type="text" class="form-control" id="Title" value="@Model.Title" name="Title" required="" data-parsley-maxlength="400" data-parsley-minlength="3" data-parsley-required-message="Title must be between 3 and 400 characters">
+                </div>
+                <div class="form-group">
+                    Test Type
+                    <input type="text" class="form-control" id="TestType" value="@Model.TestType" name="TestType">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    Pass Benchmark
+                    <input type="number" class="form-control" id="PassBenchmark" value="@Model.PassBenchmark" name="PassBenchmark">
+                </div>
+                <div class="form-group">
+                    Test Duration
+                    <input type="number" class="form-control" id="TestDuration" value="@Model.TestDuration" name="TestDuration">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    Total Question
+                    <input type="number" class="form-control" id="TotalQuestion" value="@Model.TotalQuestion" name="TotalQuestion">
+                </div>
+                <div class="form-group">
+                    Logical Reasoning
+                    <input type="number" class="form-control" id="LogicalReasoning" value="@Model.LogicalReasoning" name="LogicalReasoning">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    Verbal Reasoning
+                    <input type="number" class="form-control" id="VerbalReasoning" value="@Model.VerbalReasoning" name="VerbalReasoning">
+                </div>
+                <div class="form-group">
+                    Integrated Reasoning
+                    <input type="number" class="form-control" id="IntegratedReasoning" value="@Model.IntegratedReasoning" name="IntegratedReasoning">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    Comprehension
+                    <input type="number" class="form-control" id="Comprehension" value="@Model.Comprehension" name="Comprehension">
+                </div>
+                <div class="form-group">
+                    Quantitative
+                    <input type="number" class="form-control" id="Quantitative" value="@Model.Quantitative" name="Quantitative">
+                </div>
+            </div>
+
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-success">Add InstantTestConfig</button>
+            </div>
+        </div>
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        loadProducts();
+        loadClients();
+        loadAppSessions();
+        loadSessionCodes();
+        $('#frmAdd').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmAdd");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddInstantTestConfigRequest", "InstantTestConfig")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "InstantTestConfig was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $(".loader").hide();
+                    $("#loadingMessage").html("");
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+      function loadClients() {
+        $.getJSON("@Url.Action("LoadClients", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.ClientId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#ClientId").html(items);
+            });
+    }
+    function loadProducts() {
+        $.getJSON("@Url.Action("LoadProducts", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.ProductId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#ProductId").html(items);
+            });
+    }
+    function loadAppSessions() {
+        $.getJSON("@Url.Action("LoadAppSessions", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.AppSessionId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#AppSessionId").html(items);
+            });
+    }
+  
+    }
+    function loadSessionCodes() {
+        $.getJSON("@Url.Action("LoadSessionCode", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.SessionCode') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#SessionCode").html(items);
+            });
+    }
+
+</script>

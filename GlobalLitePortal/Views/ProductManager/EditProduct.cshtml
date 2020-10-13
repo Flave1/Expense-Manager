@@ -1,0 +1,211 @@
+﻿@model GlobalLitePortalHelper.APIObjs.RegProductObj
+@{
+    ViewBag.Title = "Edit Product";
+    ViewBag.PgTitle = "Edit Product";
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+}
+@Html.Partial("_WaitLoader")
+<div>
+    <h5><b>@Model.ClientName</b></h5>
+</div>
+<div class="card">
+    @if (hasSessionError)
+    {
+        <div class="alert alert-danger" role="alert" id="customError">
+            <p>@Html.Raw(sessionError)</p>
+        </div>
+       
+    }
+    else
+    {
+        <div class="card-header">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            <div class="row">
+                <div class="col-sm-9 form-group">
+                    <div id="dvError"></div>
+                </div>
+                <div class="col-sm-3 text-right">
+                    <button type="button" class="btn btn-secondary btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnBackToProd">
+                        <i class="icofont icofont-plus m-r-5"></i>Back to Products
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-block" style="margin-top: 15px">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmEditProduct", data_parsley_validate = "" }))
+            {
+                @Html.Hidden("clientId", Model.ClientId)
+                @Html.Hidden("productId", Model.ProductId)
+                @Html.Hidden("clientName", Model.ClientName)
+                <div class="col-md-12 col-sm-12">
+                    <div class="row">
+                        <div class="col-md-5 col-sm-5 col-xs-12">
+                            <div class="form-group">
+                                Product Name
+                                <input type="text" class="form-control" id="Name" value="@Model.Name" name="Name" required="" data-parsley-maxlength="150" data-parsley-minlength="2" data-parsley-required-message="Product Name must be between 2 and 150 characters">
+                            </div>
+                        </div>
+                        <div class="col-md-5 col-sm-5 col-xs-12">
+                            <div class="form-group" style="margin-top: 25px">
+                                Status
+                                @Html.CheckBox("StatusVal", Model.StatusVal, new { htmlAttributes = new { @class = "form-control" } })
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-10 col-sm-5 col-xs-12">
+                            <div class="form-group">
+                                Description
+                                <textarea rows="4" name="Description" id="Description" value="@Model.Description" class="form-control" required="" data-parsley-required-message="Description is required">@Model.Description</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Update Product</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+
+</div>
+@section scripts {
+    <script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+    <script>
+    $(document).ready(function () {
+
+       
+
+        $('#btnBackToProd').on("click", function () {
+            ClearInlineError("dvError");
+            var selClient = '@Model.ClientId';
+            var clientId = 0;
+            if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                clientId = 0;
+            } else {
+                clientId = parseInt(selClient);
+            }
+            var url = '@Url.Action("Index", "ProductManager")?clientId=' + clientId;
+
+            $("#waitAdd").show();
+
+            window.location.href = url;
+
+            $("#waitAdd").hide();
+
+        });
+
+
+        $('#frmEditProduct').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+            var selClient = '@Model.ClientId';
+            var clientId = 0;
+            if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                clientId = 0;
+            } else {
+                clientId = parseInt(selClient);
+            }
+
+            if (clientId < 1) {
+                InlineErrorMessage("Invalid Client Information", "dvError");
+                return false;
+            }
+
+            var frm = $("#frmEditProduct");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Product Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+            var url = '@Url.Action("Index", "ProductManager")?clientId=' + clientId;
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessEditProductRequest", "ProductManager")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Product Information was update successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.href = url;
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+   
+    </script>
+}
+
+
+
+

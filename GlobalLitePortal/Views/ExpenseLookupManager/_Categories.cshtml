@@ -1,0 +1,9 @@
+﻿@model IEnumerable<PlugLitePortalHelper.APIObjs.ExpenseCategoryObj>
+
+
+@foreach (var item in Model)
+{
+
+    <label class="col-7">@item.Name</label>
+    <input type="radio" name="radioName1" value="@item.ExpenseCategoryId" />
+}

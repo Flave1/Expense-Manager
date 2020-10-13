@@ -1,0 +1,283 @@
+﻿@using XPLUG.WEBTOOLKIT
+@model GlobalLitePortalHelper.APIObjs.ClientItemObj
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var load = error.IsNullOrEmpty() ? 1 : 0;
+
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+}
+@Html.Partial("_WaitLoader")
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title"><b>@Model.ClientName</b> </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasSessionError)
+            {
+                <div class="alert alert-success btn btn-sm" role="alert">
+                    @Html.Raw(sessionError)
+                </div>
+            }
+            else
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row" style="width: 100%">
+                            <div id="dvError"></div>
+                        </div>
+                        @if (hasError)
+                        {
+                            <div class="alert alert-success btn btn-sm" role="alert">
+                                @Html.Raw(error)
+                            </div>
+                        }
+                        @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmClientAddUser", data_parsley_validate = "" }))
+                        {
+                            @Html.Hidden("ClientId", Model.ClientId)
+                            <div class="row">
+                                <div class="col-sm-9">
+                                    <select id="UserId" name="UserId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="User's fullname is required"></select>
+                                </div>
+                                <div class="col-sm-3 text-right">
+                                    <button type="submit" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger" id="btnUpdate">Add</button>
+                                </div>
+                            </div>
+
+                        }
+
+                    </div>
+                    <div class="card-block">
+                        <div id="dvclientUserView"></div>
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        $('#frmClientAddUser').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmClientAddUser");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid User Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            var params = frm.serializeArray();
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddClientUserRequest", "ClientManager")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        InlineErrorMessage(data.Error ? data.Error : "Your session has expired! Please re-login again", "dvError");
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        swal({
+                            title: "",
+                            text: "User was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                reloadData();
+                                loadUsers();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $(".loader").hide();
+                    $("#loadingMessage").html("");
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+
+</script>
+<script>
+    $(document).ready(function () {
+        $("#waitAdd").show();
+        InitLoadUsers();
+        var thisLoad = '@load';
+        ClearInlineError("dvError");
+
+        if (thisLoad === null || thisLoad === "" || parseInt(thisLoad) < 1) {
+            $("#waitAdd").hide();
+            return false;
+        }
+
+        var cId = '@Model.ClientId';
+
+        if (cId === null || cId === "" || parseInt(cId) < 1) {
+            InlineErrorMessage("Unable to load Users for this client!", "dvError");
+            $("#waitAdd").hide();
+            return false;
+        }
+
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("_ClientUserView", "ClientManager")',
+            data: JSON.stringify({  clientId: parseInt(cId) }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "html",
+            success: function (data) {
+                $('#dvclientUserView').html(data);
+            },
+            complete: function () {
+                loadUsers();
+            }
+        });
+
+    });
+    function reloadData() {
+        var cId = '@Model.ClientId';
+
+        if (cId === null || cId === "" || parseInt(cId) < 1) {
+            InlineErrorMessage("Unable to load Users for this client!", "dvError");
+           return false;
+        }
+
+        $("#waitAdd").show();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("_ClientUserView", "ClientManager")',
+            data: JSON.stringify({  clientId: parseInt(cId) }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "html",
+            success: function (data) {
+                $('#dvclientUserView').html(data);
+            },
+            complete: function () {
+                loadUsers();
+            }
+        });
+    }
+    function InitLoadUsers() {
+        $("#UserId").html("<option value=''>Loading Users...</option>");
+        $("#UserId").prop("disabled", true);
+    }
+    function loadUsers() {
+       $.getJSON("@Url.Action("LoadUsers", "PDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                    });
+                $("#UserId").html(items);
+            }).done(function() {
+               $("#waitAdd").hide();
+               $("#UserId").prop("disabled", false);
+            });;
+    }
+
+    function deleteItem(client, user) {
+        if (client === "" || parseInt(client) < 1 || user === "" || parseInt(user) < 1) {
+            InlineErrorMessage(data.Error ? data.Error : "Invalid Selection!", "dvError");
+            return false;
+        }
+        if (!confirm("Are you sure you want to delete this item?")) {
+            return false;
+        }
+
+        $("#waitAdd").show();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ProcessDeleteUserRequest", "ClientManager")',
+            data: { clientId: parseInt(client), userId: parseInt(user) },
+            success: function (data) {
+                $("#waitAdd").hide();
+                if (!data.IsAuthenticated) {
+                    InlineErrorMessage(data.Error ? data.Error : "Your Session Has Expired!", "dvError");
+                    return false;
+                }
+                if (!data.IsSuccessful) {
+                    InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                    swal({
+                        title: "",
+                        text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                        type: "error",
+                        showCancelButton: false,
+                        confirmButtonText: "Close",
+                        closeOnConfirm: true,
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+
+                        }
+                    });
+
+                } else {
+                   swal({
+                        title: "",
+                        text: "User was deleted successfully",
+                        type: "success",
+                        showCancelButton: false,
+                        confirmButtonText: "Ok",
+                        closeOnConfirm: true,
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            reloadData();
+                        }
+                    });
+                }
+            },
+            complete: function () {
+                $("#waitAdd").hide();
+            }
+        });
+        return false;
+    }
+</script>

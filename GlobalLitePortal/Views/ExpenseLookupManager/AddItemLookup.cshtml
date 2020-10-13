@@ -1,0 +1,435 @@
+﻿@using GlobalLitePortalHelper.APICore
+@model PlugLitePortalHelper.APIObjs.ExpenseLookupObj
+@{
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+
+    var productId = ViewBag.ProductId ?? 0;
+    var clientId = ViewBag.ClientId ?? 0;
+    var productItemId = ViewBag.ProductItemId ?? 0;
+
+    if (ViewBag.CategoryList == null)
+    {
+        ViewBag.CategoryList = new List<PlugLitePortalHelper.APIObjs.ExpenseCategoryObj>();
+    }
+}
+@Html.Partial("_WaitLoader")
+<style>
+    .noWrap {
+        word-wrap: normal;
+    }
+</style>
+<div class="col-sm-3 pull-right text-right " style="float:right">
+    <button type="button" class="btn btn-yellow btn-sm waves-effect waves-light d-inline-block md-trigger pull-right"
+            onclick="window.history.go(-1); return false;">
+        <i class="icofont icofont-plus m-r-5"></i>Back
+    </button>
+</div>
+<div class="card col-sm-12">
+
+    @if (hasSessionError)
+    {
+        <div class="alert alert-danger" role="alert" id="customError">
+            <p>@Html.Raw(sessionError)</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+
+    }
+    else
+    {
+
+        <div class="card-header">
+
+
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-9 form-group">
+                        <div id="dvError"></div>
+                    </div> 
+                </div> 
+            }
+
+
+        </div>
+        <div class="card-block">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAddRequiredLkps", data_parsley_validate = "" }))
+            {
+            <div class="col-md-12 col-sm-12">
+                <div id="dvError"></div>
+                <input type="hidden" name="ProductId" id="ProductId" value="@productId" />
+                <input type="hidden" name="ProductItemId" id="ProductItemId" value="@productItemId" />
+                <input type="hidden" name="ClientId" id="ClientId" value="@clientId" />
+                <input type="hidden" name="LookupName" value="@ExpenseLookupItems.ExpenseItem.ToString()" />
+                <input type="hidden" name="LookupItem" value="@((int)ExpenseLookupItems.ExpenseItem)" />
+                <div class="form-group row col-12">
+
+                    <div class="col-6">
+                        <h4>Expense Category</h4>
+                        <select id="ExpenseCategoryId" name="ExpenseCategoryId" class=" browser-default custom-select custom-select-lg mb-3 input-new" required="" data-parsley-required-message="Expense Category is required"></select>
+
+                    </div>
+
+                    <div class="col-6">
+                        <h4>Expense Classification</h4>
+                        <select id="ExpenseClassificationId" name="ExpenseClassificationId" class="  browser-default custom-select custom-select-lg mb-3 input-new" required="" data-parsley-required-message="Expense Classification is required"></select>
+                    </div>
+
+                </div>
+                <div class="row ">
+                    <div class="col-12 row" id="expenseItemId">
+
+                    </div>
+                </div>
+                <div class="col-4">
+                    <input type="hidden" readonly="" class="form-control" id="InclusionList" value="@Model.InclusionList" name="InclusionList">
+
+                    <input type="hidden" readonly="" class="form-control" id="ExclusionList" value="@Model.ExclusionList" name="ExclusionList">
+                    <div class="row">
+                        <label style="display:none;" id="selectAllLb" class="col-5"><b>Select All</b></label>
+                        <input class="col-6" type="checkbox" style="display: none;" id="selectAll" />
+                    </div>
+
+                </div>
+
+                <br />
+                <hr />
+
+
+                <div class="modal-footer">
+                    <button type="submit" id="btnAdd" class="btn btn-success">Add </button>
+                </div>
+            </div>
+            }
+        </div>
+
+    }
+
+
+
+</div>
+@section scripts {
+    <script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+    <script>
+        //$(window).on('load', function () {
+        //    $("#waitAdd").show();
+        //});
+
+        $(document).ready(function () {
+            loadExpenseCategory();
+
+
+            //$('input[name=Category]').change(function(){
+            //    $("#waitAdd").show();
+            //    GetAddedLookup(this.value);
+            //     $("#waitAdd").hide();
+            //});
+
+
+
+            $("#waitAdd").hide();
+            $("#btnAdd").click(function () {
+                var checkedValues = $('.lkpItem:checkbox:checked').map(function() {  return this.value;  }).get();
+                var uncheckedValues = $('.lkpItem:checkbox:not(:checked)').map(function () { return this.value; }).get();
+                $("#InclusionList").val(checkedValues.join(","));
+                $("#ExclusionList").val(uncheckedValues.join(","));
+                //alert($("#InclusionList").val() + " " + $("#ExclusionList").val());
+            });
+
+
+
+            $('#frmAddRequiredLkps').parsley().on('field:validated', function() {
+                var ok = $('.parsley-error').length === 0;
+                if (!ok) {
+                    InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                    return false;
+                }
+            }).on('form:submit', function () {
+                ClearInlineError("dvError");
+                var selClient = $("#ClientId").val();
+                var selProd =  $("#ProductId").val(); 
+                var clientId = 0;
+                var prodId = 0;
+                if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                    clientId = 0;
+                } else {
+                    clientId = parseInt(selClient);
+                }
+
+                if (selProd === "" || selProd.length < 1 || parseInt(selProd) < 1) {
+                    prodId = 0;
+                } else {
+                    prodId = parseInt(selProd);
+                }
+
+                if (clientId < 1) {
+                    InlineErrorMessage("Invalid Client Information", "dvError");
+                    return false;
+                }
+
+                if (prodId < 1) {
+                    InlineErrorMessage("Invalid Product Information", "dvError");
+                    return false;
+                }
+
+                var frm = $("#frmAddRequiredLkps");
+
+                if (frm == null) {
+                    InlineErrorMessage("Invalid Product Information", "dvError");
+                    return false;
+                }
+
+                if (!frm.valid()) {
+                    InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                    return false;
+                }
+
+                var url = '@Url.Action("AddExpenseLookup", "ExpenseLookupManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd);
+
+                var params = frm.serializeArray();
+
+                $("#waitAdd").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("ProcessAddExpenseLookupRequest", "ExpenseLookupManager")',
+                    data: params,
+                    success: function (data) {
+                        if (!data.IsAuthenticated) {
+                            window.location.href = "@Url.Action("Login", "Portal")";
+                            return;
+                        }
+                        if (!data.IsSuccessful) { 
+
+                 $("#waitAdd").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("ProcessAddDepenDentLKPRequest", "ExpenseLookupManager")',
+                    data: params,
+                    success: function (data) {
+                        if (!data.IsAuthenticated) {
+                            window.location.href = "@Url.Action("Login", "Portal")";
+                            return;
+                        }
+                        if (!data.IsSuccessful) {
+                            InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                            swal({
+                                title: "",
+                                text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                                type: "error",
+                                showCancelButton: false,
+                                confirmButtonText: "Close",
+                                closeOnConfirm: true,
+                            }, function (isConfirm) {
+
+                                    if (isConfirm) {
+
+                                }
+                            });
+
+                        } else {
+                            $('#dvModal').modal('hide');
+                            swal({
+                                title: "",
+                                text: "Item Information was updated successfully",
+                                type: "success",
+                                showCancelButton: false,
+                                confirmButtonText: "Ok",
+                                closeOnConfirm: false,
+                            }, function (isConfirm) {
+                                    if (isConfirm) {
+                                        window.location.reload();
+                                }
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#waitAdd").hide();
+                    }
+                });
+                return false;
+
+
+
+                        } else {
+                            $('#dvModal').modal('hide');
+                            swal({
+                                title: "",
+                                text: "Expense lookup added successfully",
+                                type: "success",
+                                showCancelButton: false,
+                                confirmButtonText: "Ok",
+                                closeOnConfirm: false,
+                            }, function (isConfirm) {
+                                    if (isConfirm) {
+                                        window.location.reload();
+                                }
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#waitAdd").hide();
+                    }
+                });
+                return false;
+            });
+
+
+        });
+        function back() {
+            var url = '@Url.Action("Index", "ExpenseLookupManager")?clientId=' + parseInt('@clientId') + "&productId=" + parseInt('@productId') ;
+            window.location.href =url;
+        }
+    </script>
+
+
+
+    <script>
+
+        var catItem = "";
+        var classId = "";
+
+
+        $("#ExpenseCategoryId").change(function () {
+            catItem = $("#ExpenseCategoryId > option:selected").attr("value");
+            loadClassification(catItem);
+        });
+
+        $("#ExpenseClassificationId").change(function () {
+            catItem = $("#ExpenseCategoryId > option:selected").attr("value");
+            classId = $("#ExpenseClassificationId > option:selected").attr("value"); 
+            loadExpenseItem(catItem, classId);
+        });
+
+
+
+        function loadExpenseCategory() {
+            var counter = 0;
+            $("#ExpenseCategoryId").html("<option value=''>Expense Category...</option>");
+            $("#ExpenseCategoryId").prop("disabled", true);
+            $.getJSON("@Url.Action("LoadFilteredExpenseCategories", "OBusinessDataProvider")?clientId=" + parseInt('@clientId') + "&productId="+ parseInt('@productId')+ "&reqPlaceHolder="+ parseInt(1),
+                    function(data) {
+                        var items = "";
+                        $.each(data,
+                            function (i, item) {
+                               if (item.Id === 0) {
+                                    items += "<option value='' > -- Category -- </option>";
+                                } else {
+                                    items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+
+
+                                }
+
+                            });
+                        $("#ExpenseCategoryId").html(items);
+                    })
+                .done(function() {
+                    counter++;
+                    if (counter === 5) {
+                        $("#waitAdd").hide();
+                    }
+                    $("#ExpenseCategoryId").prop("disabled", false);
+                });
+        }
+
+        function loadClassification(catId) {
+            $("#ExpenseClassificationId").html("<option value=''>Classification...</option>");
+            $("#ExpenseClassificationId").prop("disabled", true);
+            $.getJSON("@Url.Action("LoadFilteredExpenseClassifications", "OBusinessDataProvider")?clientId=" + parseInt('@clientId') + "&productId="+ parseInt('@productId') + "&categoryId="+ parseInt(catId),
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function (i, item) {
+                            if (item.Id === 0) {
+                                items += "<option value='' > --  Select -- </option>";
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+                        });
+                    $("#ExpenseClassificationId").html(items);
+                }).done(function() {
+                $("#ExpenseClassificationId").prop("disabled", false);
+            });
+        }
+
+    </script>
+    <script>
+
+        function shouldCheckItem(itemId) {
+            var inclist = $("#InclusionList").val();
+            var Exclist = $("#ExclusionList").val();
+
+
+            var itemList = [];
+            var isInclusion = false;
+
+            if (inclist.length >= Exclist.length) {
+                isInclusion = true;
+                itemList = inclist.split(',');
+            }
+            else {
+                itemList = Exclist.split(',');
+            }
+            var itemExists = itemList.includes(itemId.toString());
+            var attribute = "";
+            if (isInclusion && itemExists) {
+                attribute = "checked";
+            }
+
+            if (!isInclusion && !itemExists) {
+                attribute = "checked";
+            }
+           return attribute ;
+        }
+
+        function dropdownItemhtml(item, chkvalue) {
+        return "<div class='col-6' ><label class='col-8 '>"+ item.Name+"</label> <input  class='lkpItem' "+chkvalue+"   type='checkbox'   value='" + item.Id + "'> </div>";
+    }
+
+
+
+        function loadExpenseItem(catId, classId) {
+            $.getJSON("@Url.Action("LoadExpenseItems", "OBusinessDataProvider")?categoryId=" + parseInt(catId) + "&classificationId=" + parseInt(classId),
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function (i, item) {
+                             items += dropdownItemhtml(item, shouldCheckItem(item.Id));
+                            //items += "<div class='col-6' ><label class='col-10 '>"+ item.Name+"</label> <input class='lkpItem'  type='checkbox'   value='" + item.Id + "'> </div>";
+                        });
+                    $("#expenseItemId").html(items);
+                });
+        }
+
+
+        function GetAddedLookup( catId) {
+            $("#waitAdd").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("AddRequiredExpenseLookup", "ExpenseLookupManager")?categoryId=' + parseInt(catId)+ "&clientId=" + parseInt('@clientId') +"&productId=" + parseInt('@productId'),
+                    success: function (data) {
+                    },
+                    complete: function () {
+                        loadExpenseClassification(catId);
+                        $("#waitAdd").hide();
+                    }
+                });
+                return false;
+        }
+
+    </script>
+}
+
+
+

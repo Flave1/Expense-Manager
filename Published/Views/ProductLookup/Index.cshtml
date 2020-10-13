@@ -1,0 +1,326 @@
+﻿@using JetSetupPortalHelper.APICore
+@using XPLUG.WEBTOOLKIT
+@model IEnumerable<JetSetupPortalHelper.APIObjs.ProductLookupObj>
+@{
+    ViewBag.Title = "Product Lookup";
+    ViewBag.PgTitle = "Product Lookup";
+    var error = ViewBag.Error as string;
+}
+
+<div>
+    <h5>Manage ProductLookup</h5>
+</div>
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div id="frmDiv" class="col-sm-6">
+                @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmProductLookup" }))
+                {
+
+
+
+                    <div class="form-row">
+                        <div class="col-4">
+                            <select id="ClientIdd" name="ClientId" class="form-control input-new" style="width: 100%"> </select>
+                        </div>
+
+                        <div class="col-4">
+                            <select id="ProductIdd" name="ProductId" onchange="disappear()" class="form-control input-new" style="width: 100%"> </select>
+                        </div>
+                        <div class="col">
+                            <button class="btn btn-info btn-sm mt-0" type="submit" style="font-size:13px;">Load</button>
+                        </div>
+                    </div>
+
+
+
+                }
+            </div>
+            <div class="col-sm-6 text-right">
+                <a type="button" id="NewAnchor" style="display: none !important;" onclick="getClientProducts()" class="btn btn-success btn-sm waves-effect waves-light d-inline-block md-trigger " href="@Url.Action("_AddProductLookup", "ProductLookup")" data-modal="">
+                    <i class="icofont icofont-plus m-r-5"></i>New Product Lookup
+                </a>
+
+            </div>
+        </div>
+    </div>
+    <div class="card-block">
+        @if (!string.IsNullOrEmpty(error) && error.Length > 0)
+        {
+            <div class="alert alert-success btn btn-sm" role="alert">
+                @Html.Raw(error)
+            </div>
+        }
+        <div class="table-responsive">
+            <table id="dtBasicExample" class="table table-striped table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th> Name</th>
+                        <th> LookupItem</th>
+                        <th> Inclusion List </th>
+                        <th> Exclusion List </th>
+                        <th> Enabled </th>
+                        <th>Status</th>
+                        <th class="tabledit-toolbar-column">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int k = 1;
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <th>@k</th>
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.LookupName
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="wrap-table">
+                                        @Enum.Parse(typeof(LookupItem), @item.LookupItem.ToString()).ToString().Replace('_', ' ')
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.InclusionList
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.ExclusionList
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.IsEnabled
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="wrap-table">
+                                        @item.StatusLabel
+                                    </span>
+                                </td>
+                                <td>
+
+
+                                    <div class="tabledit-toolbar btn-toolbar">
+
+                                        <span class="p-1"><a href="@Url.Action("_EditProductLookup", "ProductLookup", new {ProductLookupId = item.ProductLookupId})" data-modal="" data-toggle="tooltip" title="Edit"><i class="far fa-edit"></i></a></span>
+                                        <span class="p-1"><a href="@Url.Action("_Details", "ProductLookup", new {ProductLookupId = item.ProductLookupId})" data-modal="" data-toggle="tooltip" title="Detail">   <i class="fas fa-eye"></i></a></span>
+
+
+                                        <span class="p-1"><a href="#" onclick="deleteItem('@item.ProductLookupId')" data-toggle="tooltip" title="Delete"><i class="far fa-trash-alt red-text"></i></a></span>
+
+                                        @*<div class="btn-group btn-group-sm" style="float: none;">
+                                                <a class="tabledit-edit-button btn btn-primary waves-effect waves-light" style="float: none; margin: 5px;" href="@Url.Action("_EditRole", "PortalRole", new {roleId = item.RoleId})" data-modal="">
+                                                    <span class="icofont icofont-ui-edit"></span>
+                                                </a>
+                                                <a href="#" onclick="deleteRole('@item.RoleId')" class="tabledit-delete-button btn btn-danger waves-effect waves-light" style="float: none; margin: 5px;">
+                                                    <span class="icofont icofont-ui-delete"></span>
+                                                </a>
+
+                                            </div>*@
+                                    </div>
+
+
+                                </td>
+
+                            </tr>
+                            k++;
+                        }
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section scripts {
+
+    <script>
+
+        $(document).ready(function () {
+
+            $('#NewAnchor').hide();
+            $("#ProductIdd").html("<option value=''>Loading Products...</option>");
+            $("#ProductIdd").prop("disabled", true);
+
+            loadClients();
+            loadProducts();
+
+
+            var product = $("#ProductIdd > option:selected").attr("value");
+            var client = $("#ClientIdd > option:selected").attr("value");
+
+            $("#frmProductLookup").submit(function() {
+
+
+                $.ajax({
+                    type: "POST",
+                    Url: "@Url.Action("Index", "ProductLookup")",
+                    data: JSON.stringify({ ClientId: client ,ProductId:product}),
+                });
+            });
+        });
+
+        function loadClients() {
+
+            $.getJSON("@Url.Action("LoadClients", "ODataProvider")",
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        });
+                    $("#ClientIdd").html(items);
+                });
+        }
+
+        function loadProducts(client) {
+
+            $.getJSON("@Url.Action("LoadProductsByClientId", "ODataProvider")",
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function(i, item) {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        });
+                    $("#ProductIdd").html(items);
+                });
+        }
+
+        function getClientProducts() {
+
+            var selected = new Array();
+            var text = new Array();
+            var inputs = document.getElementById("frmDiv");
+            var chks = inputs.getElementsByTagName("option");
+            for (var i = 1; i < chks.length; i++) {
+                if (chks[i].selected) {
+                    selected.push(chks[i].value);
+                    text.push(chks[i].text);
+                }
+
+
+            }
+            if (selected.length > 0) {
+                //alert("Selected values: " + selected +"text"+ text);
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("_AddProductLookup", "ProductLookup")',
+                    data: JSON.stringify({ Ids: selected, Names: text }),
+                    contentType: "application/json; charset=utf-8",
+                    complete: function() {
+
+                    }
+                });
+                return false;
+
+            }
+        }
+    </script>
+    <script>
+        $("#ClientIdd").change(function () {
+            var selState = $("#ClientIdd > option:selected").attr("value");
+            loadProducts(parseInt(selState));
+        });
+        $("#ProductIdd").change(function () {
+            var selState = $("#ProductIdd > option:selected").attr("value");
+            if ((parseInt(selState)) < 1) {
+                $("#NewAnchor").hide();
+                window.location.reload();
+                return;
+            }
+            //$("#newbtn").hide();
+            $("#NewAnchor").show();
+
+            //document.getElementsByClassName("newbtn").style.setProperty("display", "none", "important");
+            //document.getElementsByClassName("newbtn").style.display = "none !important;";
+
+        });
+
+    </script>
+    <script>
+    function loadProducts(client) {
+        $("#ProductIdd").html("<option value=''>Loading Products...</option>");
+        $("#ProductIdd").prop("disabled", true);
+        $.getJSON("@Url.Action("LoadProductsByClientId", "ODataProvider")?clientId=" + parseInt(client),
+            function (data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                    });
+                $("#ProductIdd").html(items);
+        }).done(function () {
+            $("#ProductIdd").prop("disabled", false);
+            $("#newdiv").prop("disabled", false);
+        });
+    }
+
+
+    </script>
+    <script>
+
+        function deleteItem(id) {
+            if (id === "" || parseInt(id) < 1) {
+                InlineErrorMessage(data.Error ? data.Error : "Invalid Selection!", "dvError");
+                return false;
+            }
+            if (!confirm("Are you sure you want to delete this item?")) {
+                return false;
+            }
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessDeleteRequest", "ProductLookup")',
+                data: { ProductLookupId: parseInt(id) }, //JSON.stringify(),
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "ProductLookup was deleted successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+
+                }
+            });
+            return false;
+        }
+    </script>
+}

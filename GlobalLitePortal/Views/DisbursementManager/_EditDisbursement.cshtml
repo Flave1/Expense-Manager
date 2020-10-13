@@ -1,0 +1,299 @@
+﻿@using GlobalLitePortalHelper.APICore
+@model GlobalLitePortalHelper.APIObjs.DisbursementObj
+@{
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+
+
+} 
+@Html.Partial("_WaitLoader")
+
+@*<div class="col-sm-3 pull-right text-right" style="float:right">
+    <button type="button" class="btn btn-secondary btn-sm waves-effect waves-light d-inline-block md-trigger pull-right" onclick="back()">
+        <i class="icofont icofont-plus m-r-5"></i>Back
+    </button>
+</div>*@
+<div class="card">
+
+    @if (hasSessionError)
+    {
+        <div class="alert alert-danger" role="alert" id="customError">
+            <p>@Html.Raw(sessionError)</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+
+    }
+    else
+    {
+
+        <div class="card-header">
+
+            @*<div class="row">
+                <strong class="col-4"><b>@Model.ClientName </b> </strong>
+                <strong class="col-4">@Model.ProductName </strong>
+                <strong class="col-4"> <small>@Model.ProductItemName</small> </strong>
+            </div>*@
+
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-9 form-group">
+                        <div id="dvError"></div>
+                    </div>
+
+                </div>
+
+            }
+
+
+        </div>
+        <div class="card-block" style="margin-top: 15px">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "fromAdd", data_parsley_validate = "" }))
+            {
+
+                <div class="col-md-12 col-sm-12">
+                    <div id="dvError"></div>
+                    <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                    <input type="hidden" name="ProductItemId" value="@Model.ProductItemId" />
+                    <input type="hidden" name="ClientId" value="@Model.ClientId" />
+
+                    <div class="row">
+                        <div class="col-sm-6 form-group">
+                            <label>Expense</label>
+                            <select id="ExpenseId" name="ExpenseId" value="@Model.ExpenseId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="  required"></select>
+                        </div>
+                        <div class="col-sm-6 form-group">
+                            <label>Workflow Item</label>
+                            <select id="WorkflowItemId" name="WorkflowItemId" value="@Model.WorkflowItemId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="  required"></select>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 form-group">
+                            <label>Expense Requisition</label>
+                            <select id="ExpenseRequisitionId" name="ExpenseRequisitionId" value="@Model.ExpenseRequisitionId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="  required"></select>
+                        </div>
+                        <div class="col-sm-6 form-group">
+                            <label>Request Type</label>
+                            @Html.DropDownList("RequestType", EnumHelper.GetSelectList(typeof(RequestType)), "Select Request Type", new { @id = "RequestType", @class = "form-control input-new" })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-12 form-group">
+                            <label>Title</label>
+                            <input id="Title" name="Title" class="form-control input-new" value="@Model.Title" style="width: 100%" required="" data-parsley-required-message="  required" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6 form-group">
+                            <label>Beneficiary</label>
+                            <select id="BeneficiaryId" name="BeneficiaryId" value="@Model.BeneficiaryId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="  required"></select>
+                        </div>
+                        <div class="col-sm-6 form-group">
+                            <label>Beneficiary Type</label>
+                            @Html.DropDownList("BeneficiaryType", EnumHelper.GetSelectList(typeof(BeneficiaryType)), "Beneficiary Type", new { @id = "BeneficiaryType", @class = "form-control input-new" })
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" id="btnAdd" class="btn btn-success">Add    </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+    }
+
+
+</div>
+@section scripts {
+    <script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+       
+
+            $('#btnBackToProd').on("click", function () {
+                ClearInlineError("dvError");
+                var selClient = '@Model.ClientId';
+                var selProd = '@Model.ProductId';
+                var clientId = 0;
+                var prodId = 0;
+                if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                    clientId = 0;
+                } else {
+                    clientId = parseInt(selClient);
+                }
+
+                if (selProd === "" || selProd.length < 1 || parseInt(selProd) < 1) {
+                    prodId = 0;
+                } else {
+                    prodId = parseInt(selProd);
+                }
+
+                var url = '@Url.Action("Index", "DisbursementManager")?clientId=' + clientId + "&productId=" + prodId;
+
+                $("#waitAdd").show();
+
+                window.location.href = url;
+
+                $("#waitAdd").hide();
+
+            });
+
+
+            $('#fromAdd').parsley().on('field:validated', function() {
+                var ok = $('.parsley-error').length === 0;
+                if (!ok) {
+                    InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                    return false;
+                }
+            }).on('form:submit', function () {
+                ClearInlineError("dvError");
+
+                var selClient = '@Model.ClientId';
+                var selProd = '@Model.ProductId';
+                var selProdItem = '@Model.ProductItemId';
+                var clientId = 0;
+                var prodId = 0;
+                if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                    clientId = 0;
+                } else {
+                    clientId = parseInt(selClient);
+                }
+
+                if (selProd === "" || selProd.length < 1 || parseInt(selProd) < 1) {
+                    prodId = 0;
+                } else {
+                    prodId = parseInt(selProd);
+                }
+
+                if (clientId < 1) {
+                    InlineErrorMessage("Invalid Client Information", "dvError");
+                    return false;
+                }
+
+                if (prodId < 1) {
+                    InlineErrorMessage("Invalid Product Information", "dvError");
+                    return false;
+                }
+
+                var frm = $("#fromAdd");
+
+                if (frm == null) {
+                    InlineErrorMessage("Invalid Product Information", "dvError");
+                    return false;
+                }
+
+
+                if (!frm.valid()) {
+                    InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                    return false;
+                }
+
+                var url = '@Url.Action("AddDisbursement", "DisbursementManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) + "&productItemId=" + parseInt('@Model.ProductItemId') + "&clientName=" + '@Model.ClientName' + "&productName=" + '@Model.ProductName' + "&productItemName=" + '@Model.ProductItemName';
+                var urlBack = '@Url.Action("Index", "DisbursementManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) + "&productItemId=" + parseInt('@Model.ProductItemId');
+
+                var params = frm.serializeArray();
+
+                $("#waitAdd").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("ProcessEditDisbursementRequest", "DisbursementManager")',
+                    data: params,
+                    success: function (data) {
+                        if (!data.IsAuthenticated) {
+                            window.location.href = "@Url.Action("Login", "Portal")";
+                            return;
+                        }
+                        if (!data.IsSuccessful) {
+                            InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                            swal({
+                                title: "",
+                                text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                                type: "error",
+                                showCancelButton: false,
+                                confirmButtonText: "Close",
+                                closeOnConfirm: true,
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+
+                                }
+                            });
+
+                        } else {
+                            $('#dvModal').modal('hide');
+                            swal({
+                                title: "",
+                                text: "Disbursement updated successfully",
+                                type: "success",
+                                showCancelButton: false,
+                                confirmButtonText: "Ok",
+                                closeOnConfirm: false,
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+                                    window.location.href = urlBack;
+                                }
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#waitAdd").hide();
+                    }
+                });
+                return false;
+            });
+
+
+
+        });
+
+        function back() {
+            var url = '@Url.Action("Index", "DisbursementManager")?clientId=' + parseInt('@Model.ClientId') + "&productId=" + parseInt('@Model.ProductId') + "&productItemId=" + parseInt('@Model.ProductItemId');
+            window.location.href =url;
+        }
+    </script>
+
+    <script>
+
+        @*function loadDepartments() {
+            $("#DepartmentId").html("<option value=''>Department...</option>");
+            $("#DepartmentId").prop("disabled", true);
+            $.getJSON("@Url.Action("LoadDepartments", "OBusinessDataProvider")?placeValueNeed=" + parseInt(1),
+                function(data) {
+                    var items = "";
+                    $.each(data,
+                        function (i, item) {
+                            if (parseInt('@Model.DepartmentId') === item.Id) {
+                                items += "<option value='" +  item.Id + "' selected='selected'>" + item.Name +    "</option>";
+                            } else if (item.Id === 0) {
+                                items += "<option value='' > -- Select Type -- </option>";
+                            } else {
+                                items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                            }
+
+                        });
+                    $("#DepartmentId").html(items);
+                    $("#DepartmentId").prop("disabled", false);
+                });
+
+        }*@
+    </script>
+
+}
+
+
+

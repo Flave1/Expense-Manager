@@ -1,0 +1,431 @@
+﻿@using GlobalLitePortalHelper.APICore
+@model PlugLitePortalHelper.APIObjs.ExpenseLookupObj
+@{
+
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+
+    var expenseCategory = (int)ExpenseLookupItems.ExpenseCategory;
+    var expenseItem = (int)ExpenseLookupItems.ExpenseItem;
+    var expenseClassification = (int)ExpenseLookupItems.ExpenseClassification;
+    var expenseType = (int)ExpenseLookupItems.ExpenseType;
+    var workflowRole = (int)ExpenseLookupItems.WorkflowRole;
+    var workflowStage = (int)ExpenseLookupItems.WorkflowStage;
+    var workflowApprovalLevel = (int)ExpenseLookupItems.WorkflowApprovalLevel;
+    var department = (int)ExpenseLookupItems.Department;
+}
+
+@Html.Partial("_WaitLoader")
+
+@*<div class="col-sm-3 pull-right text-right" style="float:right">
+        <button type="button" class="btn btn-secondary btn-sm waves-effect waves-light d-inline-block md-trigger pull-right" onclick="back()">
+            <i class="icofont icofont-plus m-r-5"></i>Back
+        </button>
+    </div>*@
+<div class="card modal-lg " style="margin:auto;">
+
+    @if (hasSessionError)
+    {
+        <div class="alert alert-danger" role="alert" id="customError">
+            <p>@Html.Raw(sessionError)</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+
+    }
+    else
+    {
+
+        <div class="card-header">
+
+            @*<div class="row">
+                    <strong class="col-4"><b>@Model.ClientName </b> </strong>
+                    <strong class="col-4">@Model.ProductName </strong>
+                    <strong class="col-4"> <small>@Model.ProductItemName</small> </strong>
+                </div>*@
+
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-9 form-group">
+                        <div id="dvError"></div>
+                    </div>
+
+                </div>
+
+            }
+
+
+        </div>
+        <div class="card-block" style="margin-top: 15px">
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmEdit", data_parsley_validate = "" }))
+            {
+                <div class="col-md-12 col-sm-12">
+                    <div id="dvError"></div>
+                    <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                    <input type="hidden" name="ProductItemId" value="@Model.ProductItemId" />
+                    <input type="hidden" name="ClientId" value="@Model.ClientId" />
+                    <input type="hidden" name="ExpenseLookupId" value="@Model.ExpenseLookupId" />
+                    <div class="form-group">
+                        Look Up items
+                        <input type="text" readonly="" style="cursor: pointer" id="LookupNameId" name="LookupName" value="@Model.LookupItem" />
+                        @Html.DropDownList("LookupItem", EnumHelper.GetSelectList(typeof(ExpenseLookupItems)), "Select Look up item", new { @hidden = "hidden", @id = "lookUpId", @class = "form-control" })
+                    </div>
+                    <div class="row">
+                        <div class=" col-12">
+                            <div class="col-12 row" >
+                                <ol id="SubItemId"  class="col-12 row"></ol>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <br /> 
+                            <input type="hidden" readonly="" class="form-control" id="InclusionList" value="@Model.InclusionList" name="InclusionList">
+
+                            <input type="hidden" readonly="" class="form-control" id="ExclusionList" value="@Model.ExclusionList" name="ExclusionList">
+                            <br /> <br /> 
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> 
+                    </div>
+                </div>
+            }
+        </div>
+
+    }
+
+
+</div>
+@section scripts {
+    <script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            $("#updateBtn").click(function() {
+                var checkedValues = $('.lkpItem:checkbox:checked').map(function() {  return this.value;  }).get();
+                var uncheckedValues = $('.lkpItem:checkbox:not(:checked)').map(function () { return this.value; }).get();
+
+                $("#InclusionList").val(checkedValues.join(","));
+                $("#ExclusionList").val(uncheckedValues.join(","));
+            });
+
+            $("#BtnListItems").show();
+            var endpointId = $("#lookUpId").val();
+            switch(endpointId) {
+            case '@department': loadDepartments();
+                break;
+            case '@expenseCategory': loadExpenseCategory();
+                break;
+            case '@expenseClassification': loadExpenseClassification();
+                break;
+            case '@expenseItem': loadExpenseItem();
+                break;
+            case '@expenseType': loadExpenseType();
+                break;
+            case '@workflowApprovalLevel': loadWorkflowApprovalLevel();
+                break;
+            case '@workflowRole': loadWorkflowRole();
+                break;
+            case '@workflowStage': loadWorkflowStage();
+                break;
+            default:
+                $("#SubItemId").html('');
+                $("#BtnListItems").hide();
+                $("#InclusionList").val('');
+                $("#ExclusionList").val('');
+            }
+
+
+            $('#btnBackToProd').on("click", function () {
+                ClearInlineError("dvError");
+                var selClient = '@Model.ClientId';
+                var selProd = '@Model.ProductId';
+                var clientId = 0;
+                var prodId = 0;
+                if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                    clientId = 0;
+                } else {
+                    clientId = parseInt(selClient);
+                }
+
+                if (selProd === "" || selProd.length < 1 || parseInt(selProd) < 1) {
+                    prodId = 0;
+                } else {
+                    prodId = parseInt(selProd);
+                }
+
+                var url = '@Url.Action("Index", "ExpenseLookupManager")?clientId=' + clientId + "&productId=" + prodId;
+
+                $("#waitAdd").show();
+
+                window.location.href = url;
+
+                $("#waitAdd").hide();
+
+            });
+
+
+            $('#frmEdit').parsley().on('field:validated', function () {
+                var ok = $('.parsley-error').length === 0;
+                if (!ok) {
+                    InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                    return false;
+                }
+            }).on('form:submit', function () {
+                ClearInlineError("dvError");
+
+                var selClient = '@Model.ClientId';
+                var selProd = '@Model.ProductId';
+                var selProdItem = '@Model.ProductItemId';
+                var clientId = 0;
+                var prodId = 0;
+                if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                    clientId = 0;
+                } else {
+                    clientId = parseInt(selClient);
+                }
+
+                if (selProd === "" || selProd.length < 1 || parseInt(selProd) < 1) {
+                    prodId = 0;
+                } else {
+                    prodId = parseInt(selProd);
+                }
+
+                if (clientId < 1) {
+                    InlineErrorMessage("Invalid Client Information", "dvError");
+                    return false;
+                }
+
+                if (prodId < 1) {
+                    InlineErrorMessage("Invalid Product Information", "dvError");
+                    return false;
+                }
+
+                var frm = $("#frmEdit");
+
+                if (frm == null) {
+                    InlineErrorMessage("Invalid Product Information", "dvError");
+                    return false;
+                }
+
+
+                if (!frm.valid()) {
+                    InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                    return false;
+                }
+
+
+                var urlBack = '@Url.Action("Index", "ExpenseLookupManager")?clientId=' + parseInt(selClient) + "&productId=" + parseInt(selProd) + "&productItemId=" + parseInt('@Model.ProductItemId');
+
+                var params = frm.serializeArray();
+
+                $("#waitAdd").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("ProcessEditExpenseLookupRequest", "ExpenseLookupManager")',
+                    data: params,
+                    success: function (data) {
+                        if (!data.IsAuthenticated) {
+                            window.location.href = "@Url.Action("Login", "Portal")";
+                            return;
+                        }
+                        if (!data.IsSuccessful) {
+                            InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                            swal({
+                                title: "",
+                                text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                                type: "error",
+                                showCancelButton: false,
+                                confirmButtonText: "Close",
+                                closeOnConfirm: true,
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+
+                                }
+                            });
+
+                        } else {
+                            $('#dvModal').modal('hide');
+                            swal({
+                                title: "",
+                                text: "Item Information was updated successfully",
+                                type: "success",
+                                showCancelButton: false,
+                                confirmButtonText: "Ok",
+                                closeOnConfirm: false,
+                            }, function (isConfirm) {
+                                if (isConfirm) {
+                                    window.location.href = urlBack;
+                                }
+                            });
+                        }
+                    },
+                    complete: function () {
+                        $("#waitAdd").hide();
+                    }
+                });
+                return false;
+            });
+
+
+
+        });
+
+        function back() {
+            var url = '@Url.Action("Index", "ExpenseLookupManager")?clientId=' + parseInt('@Model.ClientId') + "&productId=" + parseInt('@Model.ProductId') + "&productItemId=" + parseInt('@Model.ProductItemId');
+            window.location.href =url;
+        }
+    </script>
+
+    <script>
+
+    //Handles Look Up Items  
+        $("#LookupNameId").val($("#lookUpId option:selected").text()); 
+
+    function shouldCheckItem(itemId) {
+        var inclist = $("#InclusionList").val();
+        var Exclist = $("#ExclusionList").val();
+
+        var itemList = [];
+        var isInclusion = false;
+
+        if (inclist.length >= Exclist.length) {
+            isInclusion = true;
+            itemList = inclist.split(',');
+        }
+        else {
+            itemList = Exclist.split(',');
+        }
+
+        var itemExists = itemList.includes(itemId.toString());
+
+        var attribute = "";
+        if (isInclusion && itemExists) {
+            attribute = "checked";
+        }
+
+        if (!isInclusion && !itemExists) {
+            attribute = "checked";
+        }
+       return attribute ;
+    } 
+    function dropdownItemhtml(item,chkvalue) {
+        var retVal = "";
+        if (chkvalue.trim() === 'checked') {
+            retVal= "<label  class='col-4'>" + item.Name + "</label>    ";
+        }
+        return retVal; 
+    }
+
+    function loadDepartments() {
+        $.getJSON("@Url.Action("LoadDepartments", "OBusinessDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function (i, item) {
+                         items += dropdownItemhtml(item, shouldCheckItem(item.Id));
+                });
+                $("#SubItemId").html(items);
+            });
+        }
+
+    function loadExpenseCategory() {
+        $.getJSON("@Url.Action("LoadExpenseCategories", "OBusinessDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function (i, item) {
+                         items += dropdownItemhtml(item, shouldCheckItem(item.Id));
+                });
+                $("#SubItemId").html(items);
+            });
+        }
+
+    function loadExpenseClassification() {
+        $.getJSON("@Url.Action("LoadExpenseClassifications", "OBusinessDataProvider")",
+            function (data) {
+                var items = "";
+                $.each(data,
+                    function (i, item) {
+                         items += dropdownItemhtml(item, shouldCheckItem(item.Id));
+                 });
+                $("#SubItemId").html(items);
+            });
+        }
+
+    function loadExpenseItem() {
+        $.getJSON("@Url.Action("LoadExpenseItems", "OBusinessDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function (i, item) {
+                          items += dropdownItemhtml(item, shouldCheckItem(item.Id));
+                });
+                $("#SubItemId").html(items);
+            });
+        }
+
+    function loadExpenseType() {
+        $.getJSON("@Url.Action("LoadExpenseTypes", "OBusinessDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function (i, item) {
+                         items += dropdownItemhtml(item, shouldCheckItem(item.Id));
+                });
+                $("#SubItemId").html(items);
+            });
+        }
+
+    function loadWorkflowApprovalLevel() {
+        $.getJSON("@Url.Action("LoadWorkflowApprovalLevels", "OBusinessDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function (i, item) {
+                         items += dropdownItemhtml(item, shouldCheckItem(item.Id));
+                });
+                $("#SubItemId").html(items);
+            });
+        }
+
+    function loadWorkflowRole() {
+        $.getJSON("@Url.Action("LoadWorkflowRoles", "OBusinessDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function (i, item) {
+                         items += dropdownItemhtml(item, shouldCheckItem(item.Id));
+                });
+                $("#SubItemId").html(items);
+            });
+        }
+
+    function loadWorkflowStage() {
+        $.getJSON("@Url.Action("LoadWorkFlowStages", "OBusinessDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function (i, item) {
+                         items += dropdownItemhtml(item, shouldCheckItem(item.Id));
+                });
+                $("#SubItemId").html(items);
+            });
+        }
+    </script>
+
+}
+
+
+

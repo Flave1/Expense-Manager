@@ -1,0 +1,106 @@
+﻿
+@model IEnumerable <JetSetupPortalHelper.APIObjs.ProductLookupItemObj>
+@{
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            @{
+                int k = 1;
+            //var thisItems = Model ?? new List<OLevelResultItemObj>();
+            if (Model != null && Model.Any())
+            {
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>
+                                <div>Lookup Name</div>
+                            </th>
+                            <th>
+                                <div>Lookup Item</div>
+                            </th>
+                            <th>
+                                <div>Inclusive List</div>
+                            </th>
+                            <th>
+                                <div>Exclusive List</div>
+                            </th>
+                            <th class="tabledit-toolbar-column">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderBy(m => m.LookupName))
+                        {
+                            <tr>
+                                <th scope="row">@k</th>
+                                <td>
+                                    @item.LookupName
+                                </td>
+                                <td>
+                                    @item.LookupItem.ToString()
+                                </td>
+                                <td>
+                                    @item.InclusionList
+                                </td>
+                                <td>
+                                    @item.ExclusionList
+                                </td>
+                                <td style="white-space: nowrap; width: 1%;">
+                                    @{
+                                        <div class="tabledit-toolbar btn-toolbar" style="text-align: left;">
+                                            <div class="btn-group btn-group-sm" style="float: none;">
+                                                <a class="tabledit-edit-button btn btn-primary waves-effect waves-light" style="float: none; margin: 5px;" href="@Html.Raw(Url.Action("_EditItem", "ProductLookup", new {itemName=item.LookupName}))" data-modal="">
+                                                    <span class="icofont icofont-ui-edit"></span>
+                                                </a>
+                                                <a href="#" onclick="deleteItem('@item.LookupName')" class="tabledit-delete-button btn btn-danger waves-effect waves-light" style="float: none; margin: 5px;">
+                                                    <span class="icofont icofont-ui-delete"></span>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                    }
+                                </td>
+                            </tr>
+                            k++;
+                        }
+                    </tbody>
+                </table>
+            }
+
+
+
+            }
+        </div>
+    </div>
+
+
+    <script>
+    $(function () {
+        $.ajaxSetup({ cache: false });
+        $("a[data-modal]").on("click", function (e) {
+            $(e.target).closest('.btn-group').children('.dropdown-toggle').dropdown('toggle');
+            $('#modalContent').load(this.href, function () {
+                $('#dvModal').modal('show', {
+                    backdrop: 'static',
+                    keyboard: false,
+                });
+            });
+            return false;
+        });
+    });
+
+    @*function editOLevelResult(id) {
+        $("#olevelDialog")
+            .dialog({
+                modal: true,
+                height: 500,
+                width: 500,
+                closeOnEscape: true,
+                title: "Edit O'Level Result",
+                open: function(event, ui) {
+                    $("#olevelDialog").load('@Url.Action("EditOLevel", "OLevel")/' + id);
+                }
+            }).dialog("open");
+    }*@
+    </script>

@@ -1,0 +1,353 @@
+﻿
+@using GlobalLitePortalHelper.APICore
+@using GlobalLitePortalHelper.APIObjs
+@model GlobalLitePortalHelper.APIObjs.ExpenseRequisitionObj
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+
+    var globalItems = (List<PlugLitePortalHelper.APIObjs.ExpenseItemObj>)Session["_globalItems_"];
+    if (globalItems == null)
+    {
+        globalItems = new List<PlugLitePortalHelper.APIObjs.ExpenseItemObj>();
+    }
+
+}
+@*@Html.Partial("_WaitLoader")*@
+<style>
+    img {
+        max-width: 180px;
+    }
+
+    input[type=file] {
+        background: #2d2d2d;
+    }
+</style>
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+            @*<h5 class="modal-title"> Retirement</h5>*@
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasSessionError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(sessionError)</p>
+                </div>
+            }
+            else
+            {
+                if (hasError)
+                {
+                    <div class="alert alert-danger" role="alert" id="customError">
+                        <h4>Error!</h4>
+                        <p>@Html.Raw(error)</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+
+                }
+                //using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAdd", data_parsley_validate = "",  enctype = "multipart/form-data"}))
+                //{@Url.Action("ProcessAddRetirementRequest", "ExpenseManager")
+                <form action="" method="Post" id="RetireId" enctype="multipart/form-data" data_parsley_validate="">
+                    <input type="hidden" name="ExpenseRequisitionId" id="ExpenseRequisitionId" value="@Model.ExpenseRequisitionId" />
+
+                    <div class="row">
+                        <div class="col-sm-6 form-group">
+                            <label>Retirement Type </label>
+                            @Html.DropDownList("RetirementType", EnumHelper.GetSelectList(typeof(RetirementType)), new { @id = "RetirementTypeId", @class = "form-control input-new" })
+                        </div>
+                        <div class="col-sm-6 form-group">
+                            <label>Retirement Mode </label>
+                            @Html.DropDownList("RetirementMode", EnumHelper.GetSelectList(typeof(RetireMode)), new { @id = "RetireModeId", @class = "form-control input-new" })
+                        </div>
+                        <div class="col-sm-3 form-group">
+                            <label>Amount retired </label>
+                            <input type="text" value="" id="AmountRetiredId" placeholder="Am.retired" name="AmountRetired" />
+
+                        </div>
+                        <div class="col-sm-3 form-group">
+                            <label>Amount Spent </label>
+                            <input type="text" name="AmountSpent" id="AmountSpentId" value="" placeholder="Am.spent" />
+                            <input type="hidden" name="RecievedItemIds" id="RecievedItemIds" value="" />
+
+                        </div>
+                        <div class="col-sm-3">
+                            <label>Date  </label>
+                            <input type="date" required name="Date" id="DateId" />
+
+                        </div>
+                        <div class="col-sm-3 form-group">
+                            <label>Voucher Number </label>
+                            <input type="text" name="VoucherNumber" id="VoucherNumberId" value="@ViewBag.VoucherNumber" placeholder="Voucher No." />
+
+                        </div>
+
+                    </div>
+
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Item</th>
+                                <th scope="col">Price</th>
+                                @*<th scope="col">Qty</th>*@
+                                <th scope="col">T. Amount</th>
+                                <th scope="col">Receipt No.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.ExpenseRequisitionItems)
+                            {
+
+                            <tr class="ItemVa">
+                                @foreach (var glbItem in globalItems.Where(m => m.ExpenseItemId == item.ExpenseItemId))
+                                {
+                                    <td>@glbItem.Name</td>
+                                }
+                                <input type="hidden" class="itmId" value="@item.ExpenseRequisitionItemId" />
+                                <td>@item.UnitPrice</td>
+                                @*<td>@item.Quantity</td>*@
+                                <td>@item.TotalAmount</td>
+                                <td><input type="text" class="RecNo" style="border:1px solid grey;" placeholder="Receipt No" /></td> 
+                                <td><input type="file" name="ImageFile" onchange="readURL(this)" style="width:150px;" value="" id="ImageFile" /></td>
+                            </tr>
+
+                            }
+
+                        </tbody>
+
+                    </table>
+                    <div class="modal-footer">
+                        <img id="blah" src="" style="max-height:130px; height:100%; overflow:scroll"/> 
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" id="RetireBtn" class="btn btn-success">Retire</button> 
+                    </div>
+                </form>
+                @* } *@
+            }
+        </div>
+    </div>
+</div>
+
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+<script>
+
+    $(document).ready(function () {
+
+        $("#AmountRetiredId").val('@Model.TotalAmount');
+        $("#AmountSpentId").val('@Model.TotalAmount');
+        $('#AmountSpentId').prop('readonly', true);
+        $('#AmountRetiredId').prop('readonly', true);
+
+
+
+        $("#RetirementTypeId").change(function () {
+            var selectedType = this.value;
+
+            switch (selectedType) {
+                case '1':
+                    $("#AmountRetiredId").val('@Model.TotalAmount');
+                    $("#AmountSpentId").val('@Model.TotalAmount');
+                    $('#AmountSpentId').prop('readonly', true);
+                     $('#AmountRetiredId').prop('readonly', true);
+                    break;
+                case '2':
+                    $("#AmountRetiredId").val('');
+                    $("#AmountSpentId").val('');
+                    $('#AmountSpentId').prop('readonly', false);
+                     $('#AmountRetiredId').prop('readonly', false);
+                    break;
+                case '3':
+                    $("#AmountRetiredId").val('');
+                    $("#AmountSpentId").val('');
+                    $('#AmountSpentId').prop('readonly', false);
+                     $('#AmountRetiredId').prop('readonly', false);
+                    break;
+                default: return false;
+            }
+
+        });
+
+
+
+        $('#RetireId').parsley().on('field:validated', function () { 
+
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+            var wer = "";
+            $(".ItemVa").each(function (i) {
+                if (wer != "") {
+                    wer += ",";
+                }
+                wer += $(this).find('input.itmId').val() + ":" + $(this).find('input.RecNo').val();
+
+            });
+
+            $("#RecievedItemIds").val(wer);
+             
+
+            var frm = $("#RetireId"); 
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }  
+            
+            var file = document.getElementById("ImageFile").files[0]; 
+            var ExpenseRequisitionId = $("#ExpenseRequisitionId").val();
+            var RecievedItemIds = $("#RecievedItemIds").val();
+            var VoucherNumber = $("#VoucherNumberId").val();
+            var RetireMode = $("#RetireModeId").val();
+            var AmountRetired = $("#AmountRetiredId").val();
+            var AmountSpent = $("#AmountSpentId").val();
+            var Date = $("#DateId").val(); 
+            var RetirementType = $("#RetirementTypeId").val(); 
+
+            if (parseInt(AmountSpent) > 500 && RecievedItemIds.length < 1 || RecievedItemIds == null || RecievedItemIds == "") {
+                swal("Information", "Receipt if required");
+                return false;
+            }
+
+            var formData = new FormData();
+            formData.append("ImageFile", file);
+            formData.append("ExpenseRequisitionId", ExpenseRequisitionId);
+            formData.append("VoucherNumber", VoucherNumber);
+            formData.append("RetirementMode", RetireMode);
+            formData.append("AmountRetired", AmountRetired);
+            formData.append("AmountSpent", AmountSpent);
+            formData.append("RecievedItemIds", RecievedItemIds);
+            formData.append("Date", Date);
+            formData.append("RetirementType", RetirementType);
+
+             
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddRetirementRequest", "ExpenseManager")',
+                data: formData,
+                contentType: false,  
+                processData: false,  
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                swal.close();
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Retired successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                                window.location.reload();
+                            @*if (isConfirm) {
+                                window.location.href = '@Html.Action("RetirementModule","ExpenseManager", new { expenseRequisitionId = Model.ExpenseRequisitionId })';
+                            }*@
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+
+<script>
+    function getId(itemId) {
+        var oldVal = $("#RecievedItemIds").val();
+        var newVal = oldVal + "," + itemId;
+        if (parseInt(oldVal) !== itemId) {
+            if (oldVal == "") {
+                $("#RecievedItemIds").val(itemId);
+            } else {
+                $("#RecievedItemIds").val(newVal);
+            }
+        } else {
+            return false;
+        }
+    }
+</script>
+<script>
+
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#blah')
+                    .attr('src', e.target.result);
+            }; 
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+
+
+ 
+<script type='text/javascript'>
+
+    function encodeImageFileAsURL() {
+
+        //var filesSelected = document.getElementById("file").files;
+        //if (filesSelected.length > 0) {
+        //    var fileToLoad = filesSelected[0];
+
+        //    var fileReader = new FileReader();
+
+        //    fileReader.onload = function (fileLoadedEvent) {
+        //        var srcData = fileLoadedEvent.target.result;
+
+        //        var newImage = document.createElement('img');
+        //        newImage.src = srcData;
+
+        //        document.getElementById("imgTest").innerHTML = newImage.outerHTML;
+        //        document.getElementById("ImageFile").value = srcData 
+        //        console.log("Converted Base64 version is " + document.getElementById("imgTest").innerHTML);
+        //    }
+        //    fileReader.readAsDataURL(fileToLoad);
+        //}
+    }
+</script>

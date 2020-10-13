@@ -1,0 +1,238 @@
+﻿
+
+@model JetSetupPortalHelper.APIObjs.RegAppSessionObj
+@{
+    /**/
+
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    int[] Ids =(int[]) Session["ProductClientIds"];
+   string[] Names= (string[])
+    Session["ProductClientNames"];
+}
+
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Add App Session</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAdd", data_parsley_validate = "" }))
+                {
+                    <input type="hidden" class="form-control input-new hidden" id="ClientId" value="@Ids[0]" name="ClientId">
+                    <input type="hidden" class="form-control input-new " id="ProductId" value="@Ids[1]" name="ProductId">
+                    
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+                        <div class="form-group">
+                            Client Name
+                            <label class="form-control input-new"> @Names[0]</label>
+                        </div>
+                        <div class="form-group">
+                            Product Name
+                            <label class="form-control input-new">@Names[1]</label>
+                        </div>
+                        <div class="form-group">
+                            Session Name
+                            <input type="text" class="form-control input-new" id="SessionName" value="@Model.SessionName" name="SessionName" required="" data-parsley-maxlength="200" data-parsley-minlength="2" data-parsley-required-message="AppSessionName must be between 2 and 200 characters">
+                        </div>
+                        <div class="form-group">
+                            Session Title
+                            <input type="text" class="form-control input-new" id="SessionTitle" value="@Model.SessionTitle" name="SessionTitle" required="" data-parsley-maxlength="200" data-parsley-minlength="2" data-parsley-required-message="Address must be between 2 and 200 characters">
+                        </div>
+                        <div class="form-group">
+                            Start Date
+                            <input type="date" class="form-control input-new" id="StartDate" value="@Model.StartDate" name="StartDate" required="" data-parsley-maxlength="10" data-parsley-minlength="10" data-parsley-required-message="Start Date must be 10 characters">
+                        </div>
+                        <div class="form-group">
+                            End Date
+                            <input type="date" class="form-control input-new" id="EndDate" value="@Model.EndDate" name="EndDate" required="" data-parsley-maxlength="10" data-parsley-minlength="10" data-parsley-required-message="End Date must be 10 characters">
+                        </div>
+                        </div>
+                    <div class="form-group">
+                        App Base Url
+                        <input type="text" class="form-control input-new" id="AppBaseUrl" value="@Model.AppBaseUrl" name="AppBaseUrl" required="" data-parsley-maxlength="350" data-parsley-minlength="2" data-parsley-required-message="Address must be between 2 and 350 characters">
+                    </div>
+                        <div class="form-group">
+                            Session Year
+                            <select id="SessionYear" name="SessionYear" class="form-control input-new" style="width: 100%"></select>
+                        </div>
+                        <div class="form-group">
+                            Instant Test Enabled
+                            @Html.CheckBox("InstantTestEnabled", Model.InstantTestEnabled, new { htmlAttributes = new { @class = "form-control input-new" } })
+                        </div>
+                    <div class="form-group">
+                        Essay Enabled
+                        @Html.CheckBox("EssayEnabled", Model.EssayEnabled, new { htmlAttributes = new { @class = "form-control input-new" } })
+                    </div>
+                  
+                      
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Add AppSession</button>
+                        </div>
+                  
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+      
+        loadYears();
+        loadClients();
+        loadProducts();
+        $('#frmAdd').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmAdd");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddAppSessionRequest", "AppSession")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "AppSession was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $(".loader").hide();
+                    $("#loadingMessage").html("");
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+    function loadClients() {
+    
+        $.getJSON("@Url.Action("LoadClients", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.ClientId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#ClientId").html(items);
+            });
+    }
+    function loadProducts() {
+        $.getJSON("@Url.Action("LoadProducts", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.ProductId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#ProductId").html(items);
+            });
+    }
+    function loadYears() {
+        $.getJSON("@Url.Action("LoadYears", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.SessionYear') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#SessionYear").html(items);
+            });
+    }
+   
+</script>

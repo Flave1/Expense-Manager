@@ -1,0 +1,412 @@
+﻿
+@using GlobalLitePortalHelper.APICore
+@using GlobalLitePortalHelper.APIObjs
+@model GlobalLitePortalHelper.APIObjs.ExpenseRequisitionItemObj
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+
+
+}
+@Html.Partial("_WaitLoader")
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasSessionError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(sessionError)</p>
+                </div>
+                @*<div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>*@
+
+            }
+            else
+            {
+                if (hasError)
+                {
+                    <div class="alert alert-danger" role="alert" id="customError">
+                        <h4>Error!</h4>
+                        <p>@Html.Raw(error)</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+
+                }
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAdd", data_parsley_validate = "" }))
+                {
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+                        <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                        <input type="hidden" name="ProductItemId" value="@Model.ProductItemId" />
+                        <input type="hidden" name="ClientId" value="@Model.ClientId" />
+                        <input type="hidden" name="BeneficiaryId" id="BeneficiaryIdEdit" value="@Model.BeneficiaryId" />
+                        <input type="hidden" name="BeneficiaryType" id="BeneficiaryTypeEdit" value="@Model.BeneficiaryType" />
+                        <input type="hidden" name="ExpenseCategoryId" id="ExpenseCategoryIdEdit" value="@Model.ExpenseCategoryId" />
+                        <input type="hidden" name="GeneralRemark" id="GeneralRemark" value="@Model.GeneralRemark" />
+                        <input type="hidden" name="ExpenseItemSettingId" id="ExpenseItemSettingId" value="@Model.ExpenseItemSettingId" />
+                        <input type="hidden" name="ExpenseRequisitionItemId" id="ExpenseRequisitionItemId" value="@Model.ExpenseRequisitionItemId" />
+                        <input type="hidden" name="UniqueId" id="UniqueId" value="@Model.UniqueId" />
+
+
+                        <div class="row">
+                            <div class="col-sm-6 form-group">
+                                <label>Classification</label>
+                                <select id="ExpenseClassificationId" name="ExpenseClassificationId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message=" required"></select>
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>Types</label>
+                                <select id="ExpenseTypeId" name="ExpenseTypeId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message=" required"></select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 form-group">
+                                <label>Items</label>
+                                <select id="ExpenseItemId" name="ExpenseItemId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message=" required"></select>
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label>Unit Price</label>
+                                <input id="unitPriceId" type="number" name="UnitPrice" class="form-control input-new" value="@Model.UnitPrice" style="width: 100%" required="" data-parsley-required-message=" required" />
+                            </div>
+                            <div class="col-3 form-group">
+                                <label> Quantity</label>
+                                <input id="quantityId" type="number" name="Quantity" class="form-control input-new" value="@Model.Quantity" style="width: 100%;" required="" data-parsley-required-message=" required" />
+                            </div>
+                        </div>
+                        <div class="row">
+
+                        </div>
+                        <div class="row">
+                            <div class="col-6  form-group">
+                                <label>Description</label>
+                                <textarea id="Description" name="Description" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message=" required"> @Model.Description</textarea>
+                            </div>
+                            <div class="col-6">
+                                <label>Total Amount</label>
+                                <input readonly type="text" id="TotalAmountId" name="TotalAmount" style="border: none; cursor: not-allowed" value="@Model.TotalAmount" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" id="btnAdd" class="btn btn-success">Edit Item</button>
+                        </div>
+                    </div>
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+<script>
+
+    $(document).ready(function () {
+        loadClassification('@Model.ExpenseCategoryId');
+        loadType();
+        loadExpenseItems('@Model.ExpenseCategoryId', '@Model.ExpenseClassificationId', '@Model.ExpenseTypeId')
+        
+        
+
+        loadClassification('@Model.ExpenseCategoryId');
+            var catItem = "";
+            var classId = "";
+            var typeId = "";
+
+            $("#ExpenseClassificationId").change(function () {
+                catItem = $("#ExpenseCategoryIdEdit").val();
+                classId = $("#ExpenseClassificationId > option:selected").attr("value");
+                $("#ExpenseTypeId").prop("disabled", false);
+                loadType();
+            });
+
+            $("#ExpenseTypeId").change(function () {
+                typeId = $("#ExpenseTypeId > option:selected").attr("value");
+                if (catItem == null || catItem < 0) {
+                    InlineErrorMessage("Category Required to load Item.", "dvError");
+                    return false;
+                }
+
+                if (classId == null || classId < 0) {
+                    InlineErrorMessage("Classification Required to load Item.", "dvError");
+                    return false;
+                }
+
+                loadExpenseItems(catItem, classId, typeId);
+            });
+
+        $("#ExpenseItemId").change(function () {
+            var selectedItemId = $("#ExpenseItemId > option:selected").attr("value");
+            loadExpenseItemSetting(selectedItemId);
+        });
+
+
+
+
+        $('#frmAdd').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmAdd");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessEditExpenseRequisitionItemRequest", "ExpenseRequisitionManager")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                swal.close();
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Item successfully Edited",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                $('#divPartial').load(
+                                    '@Url.Action("_ExpenseRequisitionItemsList","ExpenseRequisitionManager")');
+                                swal.close();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+            return false;
+        });
+    });
+
+</script>
+<script>
+
+
+            function loadExpenseItemSetting(selectedItemId) {
+             var counter = 0;
+                $("#ExpenseItemSettingId").html("<option value=''>Expense Setting...</option>");
+                $("#ExpenseItemSettingId").prop("disabled", true);
+                $.getJSON("@Url.Action("LoadExpenseItemSettings", "OBusinessDataProvider")?clientId=" + parseInt('@Model.ClientId') + "&productId="+ parseInt('@Model.ProductId')+ "&expenseItemId="+ parseInt(selectedItemId),
+                    function (data) {
+                            $("#unitPriceId").val(data.UnitPrice);
+                            $("#quantityId").val(data.RegularQuantity);
+                            $("#ExpenseItemSettingId").val(data.ExpenseItemSettingId);
+                            var total = Multiply(data.UnitPrice, data.RegularQuantity)
+                            $("#TotalAmountId").val(total);
+                        }).done(function() {
+                        counter++;
+                        if (counter === 5) {
+                            $("#waitAdd").hide();
+                        }
+                        $("#ExpenseItemSettingId").prop("disabled", false);
+                    });
+        }
+
+
+            function loadClassification(catId) {
+                $("#ExpenseClassificationId").html("<option value=''>Classification...</option>");
+                $("#ExpenseClassificationId").prop("disabled", true);
+                $.getJSON("@Url.Action("LoadFilteredExpenseClassifications", "OBusinessDataProvider")?clientId=" + parseInt('@Model.ClientId') + "&productId="+ parseInt('@Model.ProductId') + "&categoryId="+ parseInt(catId),
+                    function(data) {
+                        var items = "";
+                        $.each(data,
+                            function (i, item) {
+                                if (parseInt('@Model.ExpenseClassificationId') === item.Id) {
+                                    if (item.Id === 0) {
+                                        items += "<option value='' > -- Please Select -- </option>";
+                                    } else {
+                                        items += "<option value='" +  item.Id +   "' selected='selected'>" +   item.Name +   "</option>";
+                                    }
+                                } else if (item.Id === 0) {
+                                    items += "<option value='' > --  Select -- </option>";
+                                } else {
+                                    items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                                }
+                            });
+                        $("#ExpenseClassificationId").html(items);
+                    }).done(function() {
+                    $("#ExpenseClassificationId").prop("disabled", false);
+                });
+            }
+
+            function loadExpenseItems(catId, classId, typeId) {
+                $("#ExpenseItemId").html("<option value=''>ExpenseItem...</option>");
+                $("#ExpenseItemId").prop("disabled", true);
+                $.getJSON("@Url.Action("LoadConfiguredItems", "OBusinessDataProvider")?clientId=" + parseInt('@Model.ClientId') + "&productId="+ parseInt('@Model.ProductId') + "&categoryId="+ parseInt(catId) + "&classificationId="+ parseInt(classId) + "&typeId="+ parseInt(typeId),
+                    function(data) {
+                        var items = "";
+                        $.each(data,
+                            function (i, item) {
+                                if (parseInt('@Model.ExpenseItemId') === item.Id) {
+                                    if (item.Id === 0) {
+                                        items += "<option value='' > -- Please Select -- </option>";
+                                    } else {
+                                        items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+
+                                    }
+                                } else if (item.Id === 0) {
+                                    items += "<option value='' > --  Select -- </option>";
+                                } else {
+                                    items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                                }
+                            });
+                        $("#ExpenseItemId").html(items);
+                    }).done(function() {
+                    $("#ExpenseItemId").prop("disabled", false);
+                });
+            }
+
+            function loadType() {
+                $("#ExpenseTypeId").html("<option value=''>ExpenseType...</option>");
+                $("#ExpenseTypeId").prop("disabled", true);
+                $.getJSON("@Url.Action("LoadFilteredExpenseTypes", "OBusinessDataProvider")?clientId=" + parseInt('@Model.ClientId') + "&productId="+ parseInt('@Model.ProductId'),
+                    function(data) {
+                        var items = "";
+                        $.each(data,
+                            function (i, item) {
+                                if (parseInt('@Model.ExpenseTypeId') === item.Id) {
+                                    items += "<option value='" +  item.Id + "' selected='selected'>" + item.Name +    "</option>";
+                                } else if (item.Id === 0) {
+                                    items += "<option value='' > -- Select Type -- </option>";
+                                } else {
+                                    items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                                }
+
+                            });
+                        $("#ExpenseTypeId").html(items);
+                        $("#ExpenseTypeId").prop("disabled", false);
+                    });
+
+            }
+            function loadBeneficiaries(beneficiaryId) {
+                $("#BeneficiaryId").html("<option value=''>Beneficiaries...</option>");
+                $("#BeneficiaryId").prop("disabled", true);
+                $.getJSON("@Url.Action("LoadBeneficiaries", "OBusinessDataProvider")?beneficiaryId=" + parseInt(beneficiaryId),
+                    function(data) {
+                        var items = "";
+                        $.each(data,
+                            function (i, item) {
+                                if (parseInt('@Model.BeneficiaryId') === item.Id) {
+                                    items += "<option value='" +  item.Id + "' selected='selected'>" + item.Name +    "</option>";
+                                } else if (item.Id === 0) {
+                                    items += "<option value='' > -- Select Beneficiary -- </option>";
+                                } else {
+                                    items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                                }
+
+                            });
+                        $("#BeneficiaryId").html(items);
+                        $("#BeneficiaryId").prop("disabled", false);
+                    });
+
+            }
+
+
+</script>
+
+<script>
+    $('#unitPriceId').on('keyup change', function () {
+        var price = $('#unitPriceId').val();
+        var qty = $('#quantityId').val();
+        if (price === "" || price.length < 1 || parseInt(price) < 1) {
+            price = 0;
+        } else {
+            price = parseInt(price);
+        }
+        if (qty === "" || qty.length < 1 || parseInt(qty) < 1) {
+            qty = 0;
+        } else {
+            qty = parseInt(qty);
+        }
+        var result = Multiply(qty, price);
+        $("#TotalAmountId").val(result);
+    });
+
+
+
+    $('#quantityId').on('keyup change', function () {
+        var price = $('#unitPriceId').val();
+        var qty = $('#quantityId').val();
+        if (price === "" || price.length < 1 || parseInt(price) < 1) {
+            price = 0;
+        } else {
+            price = parseInt(price);
+        }
+        if (qty === "" || qty.length < 1 || parseInt(qty) < 1) {
+            qty = 0;
+        } else {
+            qty = parseInt(qty);
+        }
+        var result = Multiply(qty, price);
+        $("#TotalAmountId").val(result);
+
+    });
+</script>
+
+<script>
+    function Multiply(param1, param2) {
+        var result = 0;
+        if (param1 === 0) {
+            param1 = 0;
+        }
+        if (param2 === 0) {
+            param2 = 0;
+        }
+        return result = param2 * param1;
+    }
+</script>

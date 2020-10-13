@@ -1,0 +1,53 @@
+﻿@model  JetSetupPortal.PortalCore.Model.UserLoginContract
+@{
+    ViewBag.Title = "Login";
+    ViewBag.AuthTitle = "Sign In";
+    Layout = "~/Views/Shared/_AuthorizeLayout.cshtml";
+    var error = ViewBag.Error as string;
+}
+
+@using (Html.BeginForm("Login", "Portal", FormMethod.Post, new { @class = "md-float-material" }))
+{
+    @Html.AntiForgeryToken()
+    if (!string.IsNullOrEmpty(error) && error.Length > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            @Html.Raw(error)
+        </div>
+    }
+
+    @*<input type="email" id="Username" class="form-control mb-4 portal-log-form form-modify" placeholder="Email Address" required="">
+    <input type="password" id="Password" name="Password" class="form-control mb-4 portal-log-form form-modify" placeholder="Password" required="">
+    <span>
+        <button type="submit" class="btn btn-success btn-sm fa-pull-right waves-effect waves-light">Login</button>
+    </span>
+    <br />
+    <a href="@Url.Action("ForgotPassword", "Portal")" class="text-white">
+        Forgot Password
+    </a>*@
+
+
+
+
+
+        <div class="input-group">
+            <input type="email" id="Username" name="Username" class="form-control mb-4 portal-log-form" placeholder="Email Address" required="">
+            <span class="md-line"></span>
+        </div>
+        <div class="input-group">
+            <input type="password" class="form-control mb-4 portal-log-form" placeholder="Password" id="Password" name="Password" required="">
+            <span class="md-line"></span>
+        </div>
+        <div class="row m-t-25 text-left">
+            <div class="col-sm-12 col-xs-12 forgot-phone">
+                <a href="@Url.Action("ForgotPassword", "Portal")" class="text-right f-w-600 text-inverse text-white"> Forgot Your Password?</a>
+            </div>
+        </div>
+        <div class="row m-t-30">
+            <div class="col-md-12">
+                <button type="submit" class="btn btn-success btn-sm btn-md btn-block waves-effect text-center" style="font-size:13px;">Sign in</button>
+            </div>
+        </div>
+
+    }
+

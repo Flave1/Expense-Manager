@@ -1,0 +1,212 @@
+﻿
+@model GlobalLitePortalHelper.APIObjs.RegAlertProviderItemObj
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var sessionError = ViewBag.SessionError as string;
+    var hasError = !string.IsNullOrEmpty(error);
+    var hasSessionError = !string.IsNullOrEmpty(sessionError);
+}
+@Html.Partial("_WaitLoader")
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Add New Provider Item</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasSessionError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(sessionError)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                if (hasError)
+                {
+                    <div class="alert alert-danger" role="alert" id="customError">
+                        <h4>Error!</h4>
+                        <p>@Html.Raw(error)</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+
+                }
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAdd", data_parsley_validate = "" }))
+                {
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+                        @Html.Hidden("AlertProviderId", Model.AlertProviderId)
+                        <dl class="">
+                            <dt>Alert Provider</dt>
+                            <dd>@Model.AlertProviderName  </dd>
+                        </dl>
+                        <div class="form-group">
+                            Alert Item
+                            <select id="AlertItemId" name="AlertItemId" class="form-control input-new" style="width: 100%" required="" data-parsley-required-message="Alert Item is required"></select>
+                        </div>
+                       <div class="form-group">
+                            Status
+                            @Html.CheckBox("StatusVal", Model.StatusVal, new { htmlAttributes = new { @class = "form-control input-new" } })
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Add Item</button>
+                        </div>
+                    </div>
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $("#waitAdd").show();
+        InitLoad();
+        loadAll();
+
+
+        $('#frmAdd').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+            var selClient = '@Model.AlertProviderId';
+            var clientId = 0;
+            if (selClient === "" || selClient.length < 1 || parseInt(selClient) < 1) {
+                clientId = 0;
+            } else {
+                clientId = parseInt(selClient);
+            }
+
+            if (clientId < 1) {
+                InlineErrorMessage("Invalid Alert Provider Information", "dvError");
+                return false;
+            }
+
+
+            var frm = $("#frmAdd");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Item Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            var url = '@Url.Action("Index", "AlertProviderItemManager")?providerId=' + clientId;
+            var params = frm.serializeArray();
+
+            $("#waitAdd").show();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddAlertProviderItemRequest", "AlertProviderItemManager")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                        swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Alert Provider-Item Information was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                                window.location.href = url;
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#waitAdd").hide();
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+
+</script>
+<script>
+    function InitLoad() {
+        $("#AlertItemId").html("<option value=''>Loading Alert Items ...</option>");
+        $("#AlertItemId").prop("disabled", true);
+       
+    }
+    function loadAll() {
+        
+        $.getJSON("@Url.Action("LoadAlertItems", "OBusinessDataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.AlertItemId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#AlertItemId").html(items);
+            }).done(function() {
+                $("#waitAdd").hide();
+                $("#AlertItemId").prop("disabled", false);
+               
+            });
+
+           
+    }
+</script>
+
+
+
+
+
+
+

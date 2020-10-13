@@ -1,0 +1,39 @@
+﻿@using GlobalLitePortalHelper.APICore
+@using PlugLitePortalHelper.APIObjs
+@model IEnumerable<PlugLitePortalHelper.APIObjs.WorkflowDetailObj>
+@{
+    var appLevels = (List<WorkFlowApprovalLevelObj>)Session["_ApprovalLevels_"];
+    if (appLevels == null)
+    {
+        appLevels = new List<WorkFlowApprovalLevelObj>();
+    }
+}
+
+<table class="table">
+    <thead class="table-card-header">
+        <tr>
+            <td>Comment</td>
+            <td>App. Lv</td>
+            <td>Date</td>
+        </tr>
+    </thead>
+
+
+    @foreach (var item in Model)
+    {
+        <tbody class="table-bordered">
+            <tr>
+                <td>@item.Recommendation</td>
+                @foreach (var applev in appLevels.Where(m => m.WorkFlowApprovalLevelId == item.ApprovalLevelId))
+                {
+                    <td>@applev.Name</td>
+
+                }
+                <td>@item.TimeStampRegistered</td>
+            </tr>
+        </tbody>
+    }
+
+
+</table>
+

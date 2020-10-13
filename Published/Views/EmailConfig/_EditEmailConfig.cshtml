@@ -1,0 +1,200 @@
+﻿
+
+
+@model JetSetupPortalHelper.APIObjs.EmailConfigObj
+@{
+    /**/
+
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Edit EmailConfig</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+            <div class="alert alert-danger" role="alert" id="customError">
+                <h4>Error!</h4>
+                <p>@Html.Raw(error)</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+
+            }
+            else
+            {
+            using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmEdit", data_parsley_validate = "" }))
+            {
+            @Html.Hidden("EmailConfigId", Model.EmailConfigId)
+                @Html.Hidden("ChannelCode", Model.ChannelCode)
+            <div class="col-md-12 col-sm-12">
+                <div id="dvError"></div>
+
+                <div class="form-group">
+                    Title
+                    <input type="text" class="form-control" id="Title" value="@Model.Title" name="Title" required="" data-parsley-maxlength="300" data-parsley-minlength="2" data-parsley-required-message="Title must be between 2 and 300 characters">
+                </div>
+                <div class="form-group">
+                    Email Display Title
+                    <input type="text" class="form-control" id="Title" value="@Model.EmailDisplayTitle" name="Title" required="" data-parsley-maxlength="250" data-parsley-minlength="3" data-parsley-required-message="Email Display Title must be between 3 and 250 characters">
+                </div>
+                <div class="form-group">
+                    Client Name
+                    <select id="ClientId" name="ClientId" class="form-control" style="width: 100%"></select>
+                </div>
+                <div class="form-group">
+                    Product Name
+                    <select id="ProductId" name="ProductId" class="form-control" style="width: 100%"></select>
+                </div>
+                <div class="form-group">
+                    Email From
+                    <input type="text" class="form-control" id="EmailFrom" value="@Model.EmailFrom" name="EmailFrom" required="" data-parsley-maxlength="100" data-parsley-minlength="3" data-parsley-required-message="Email From must be between 3 and 100 characters">
+                </div>
+                <div class="form-group">
+                    Channel Code
+                    <input type="text" class="form-control" id="ChannelCode" value="@Model.ChannelCode" name="ChannelCode">
+                </div>
+                <div class="form-group">
+                    Activation Email Subject
+                    <input type="text" class="form-control" id="ActivationEmailSubject" value="@Model.ActivationEmailSubject" name="ActivationEmailSubject" required="" data-parsley-maxlength="300" data-parsley-minlength="3" data-parsley-required-message="Reset Password Subject must be between 3 and 300 characters">
+                </div>
+                <div class="form-group">
+                    Reset Password Subject
+                    <input type="text" class="form-control" id="ResetPasswordSubject" value="@Model.ResetPasswordSubject" name="ResetPasswordSubject" required="" data-parsley-maxlength="300" data-parsley-minlength="3" data-parsley-required-message="Reset Password Subject must be between 3 and 300 characters">
+                </div>
+                <div class="form-group">
+                    Nomination Email Subject
+                    <input type="text" class="form-control" id="NominationEmailSubject" value="@Model.NominationEmailSubject" name="NominationEmailSubject" required="" data-parsley-maxlength="300" data-parsley-minlength="3" data-parsley-required-message="Nomination Email Subject must be between 3 and 300 characters">
+                </div>
+                <div class="form-group">
+                    Acknowledgement Email Subject
+                    <input type="text" class="form-control" id="AcknowledgementEmailSubject" value="@Model.AcknowledgementEmailSubject" name="AcknowledgementEmailSubject" required="" data-parsley-maxlength="300" data-parsley-minlength="3" data-parsley-required-message="Acknowledgement Email Subject must be between 3 and 300 characters">
+                </div>
+                <div class="form-group">
+                    Activation Url
+                    <input type="text" class="form-control" id="ActivationUrl" value="@Model.ActivationUrl" name="ActivationUrl" required="" data-parsley-maxlength="350" data-parsley-minlength="3" data-parsley-required-message="Activation Url must be between 3 and 300 characters">
+                </div>
+                <div class="form-group">
+                    Reset Password Url
+                    <input type="text" class="form-control" id="ResetPasswordUrl" value="@Model.ResetPasswordUrl" name="ResetPasswordUrl" data-parsley-maxlength="350" data-parsley-minlength="0" data-parsley-required-message="Reset PasswordUrl must not more than 350 characters">
+                </div>
+                <div class="form-group">
+                    Accept Nomination Url
+                    <input type="text" class="form-control" id="AcceptNominationUrl" value="@Model.AcceptNominationUrl" name="AcceptNominationUrl" required="" data-parsley-maxlength="350" data-parsley-minlength="3" data-parsley-required-message="Activation Url must be between 3 and 300 characters">
+                </div>
+                <div class="form-group">
+                    Decline Nomination Url
+                    <input type="text" class="form-control" id="DeclineNominationUrl" value="@Model.DeclineNominationUrl" name="DeclineNominationUrl" required="" data-parsley-maxlength="350" data-parsley-minlength="3" data-parsley-required-message="Decline Nomination Url must be between 3 and 300 characters">
+                </div>
+                <div class="form-group">
+                    Status
+                    @Html.CheckBox("StatusVal", Model.StatusVal, new { htmlAttributes = new { @class = "form-control input-new" } })
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Update EmailConfig</button>
+                </div>
+            </div>
+            }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        $('#frmEdit').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmEdit");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessEditEmailConfigRequest", "EmailConfig")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "EmailConfig was updated successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $(".loader").hide();
+                    $("#loadingMessage").html("");
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+
+</script>

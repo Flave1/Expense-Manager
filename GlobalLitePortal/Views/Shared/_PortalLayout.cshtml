@@ -1,0 +1,194 @@
+﻿
+<!DOCTYPE html>
+@using GlobalLitePortal.PortalCore.Model
+
+@{
+    var userData = MvcApplication.GetUserData(User.Identity.Name) ?? new UserData();
+    var tabs = MvcApplication.GetPortalTabData(User.Identity.Name);
+    var userRoleList = new List<string>();
+    if (userData.UserId > 0)
+    {
+        userRoleList = userData.Roles.ToList();
+    }
+    var client = "";
+    var clientId = 0;
+    if(userData.ClientProductList == null)
+    {
+        userData.ClientProductList = new List<GlobalLitePortalHelper.APIObjs.ClientProductInfo>();
+    }
+    foreach (var userClient in userData.ClientProductList)
+    {
+        client = userClient.ClientInfo.ClientName;
+        clientId = userClient.ClientInfo.ClientId;
+    }
+    var pasteClientName = client;
+    var pasteClientId = clientId;
+    if (userData.ClientProductList.Count > 1)
+    {
+        pasteClientName = "";
+        pasteClientId = 0;
+    }
+    bool isPortalAdmin = true;
+   
+    if (User.IsInRole("portalAdmin"))
+    {
+        isPortalAdmin = true;
+    }
+    else
+    {
+        isPortalAdmin = false;
+    }
+
+    }
+    <html>
+    <head>
+        <title>PlugLite Portal - @ViewBag.Title</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" href="~/Content/skin2/img/fav.png" type="image/x-icon">
+        <link href="~/Content/x-common/css/prasley.css" rel="stylesheet">
+        <link href="~/Content/x-common/css/sweetalert.css" rel="stylesheet">
+        <link href="~/Content/app/bootstrap-datetimepicker.css" rel="stylesheet" />
+        <link href="~/Content/daterangepicker.css" rel="stylesheet" />
+        <link href="~/Content/app/datedropper.min.css" rel="stylesheet" />
+        <link href="~/Content/custom.css" rel="stylesheet" />
+        <link href="~/Content/assets/css/apploader.css" rel="stylesheet" />
+
+        <!--New Reference-->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+        <link href="~/Content/skin2/css/bootstrap.min.css" rel="stylesheet">
+        <link href="~/Content/skin2/css/mdb.min.css" rel="stylesheet">
+        <link href="~/Content/skin2/css/style.css" rel="stylesheet">
+    
+   
+    </head>
+    <body themebg-pattern="pattern2" style="height:100%;">
+        <div class="theme-loader">
+            <div class="ball-scale">
+                <div></div>
+            </div>
+        </div>
+
+
+        <div style="height: 3px;background-color: #1D78AB;">
+        </div>
+        @Html.Partial("_TopNavBar")
+        @Html.Partial("_ClientBarLayout")
+
+
+        <section class="MobilePadTop">
+            <span class="float-right">
+                @* <span><img src="~/Content/skin2/img/user.png" alt="User-Profile-Image" width="30"></span>
+                <span>@userData.Email</span>
+                <i class="ti-angle-down"></i>*@
+            </span>
+            @RenderBody()
+
+        </section>
+
+
+
+        @*<script type="text/javascript" src="~/Content/skin2/js/jquery-3.4.1.min.js"></script>*@ 
+        <script type="text/javascript" src="~/Content/assets/js/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="~/Content/skin2/js/popper.min.js"></script>
+        <script type="text/javascript" src="~/Content/skin2/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="~/Content/skin2/js/mdb.min.js"></script>
+        <script type="text/javascript" src="~/Content/skin2/js/custom.js"></script>
+
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+        <script src="~/Scripts/daterangepicker.js"></script>
+        <script type="text/javascript" src="~/Content/skin2/js/addons/datatables.js"></script>
+        <script src="~/Scripts/bootstrap-datepicker.js"></script>
+        <script src="~/Content/x-common/js/parsley.min.js"></script>
+        <script src="~/Content/x-common/js/sweetalert.min.js"></script>
+
+        <script src="~/Content/x-common/js/xtoolkit.js"></script>
+
+
+        <div class="modal" id="dvModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div id="modalContent"></div>
+        </div>
+
+        <script>
+            $(function () {
+
+                $.ajaxSetup({ cache: false });
+
+                $('#responsive-table').DataTable();
+                $('#responsive-table-col').DataTable({
+                    'columnDefs': [{
+                        'targets': [0, 2, 3, 5, 6],
+                        'orderable': false
+                    }]
+
+                });
+
+                $(document).on("focus", ".date", function (e) {
+                    $(this).datepicker({
+                        format: "dd/mm/yyyy",
+                        daysOfWeekHighlighted: "0",
+                        autoclose: true,
+                        todayHighlight: true,
+                        changeMonth: true
+                    });
+                });
+
+                $(document).on("click", "a[data-modal]", function (e) {
+                    $(e.target).closest('.btn-group').children('.dropdown-toggle').dropdown('toggle');
+                    $('#modalContent').load(this.href, function () {
+                        $('#dvModal').modal('show', {
+                            backdrop: 'static',
+                            keyboard: false,
+                        });
+                    });
+                    return false;
+                });
+
+
+            });
+
+            // Tooltips Initialization
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            })
+
+        </script>
+
+
+        <script>
+
+         //!! IMPORTANT !!
+        $("#layoutClientName").html(localStorage["_ClientName_"]);
+        $("#layoutProductName").html(localStorage["_ProductName_"]);
+
+        $("#logout").click(function () {
+            localStorage["_ClientID_"] = "";
+            localStorage["_ClientName_"] = "";
+            localStorage["_ProductID_"] = "";
+            localStorage["_ProductName_"] = "";
+            localStorage["_ProductItemID_"] = "";
+            localStorage["_ProductItemName_"] = "";
+            localStorage["_SessionVariable_"] = "";
+
+        });
+  
+        </script>
+
+        @RenderSection("scripts", required: false)
+
+        <!-- Footer -->
+        <footer class="page-footer font-small blue mt-4">
+
+            <!-- Copyright -->
+            <div class="footer-copyright text-center py-3">
+                © 2019 Copyright:
+                <a href="#!"> Expense Expat</a>
+            </div>
+            <!-- Copyright -->
+
+        </footer>
+        <!-- Footer -->
+    </body>
+</html>

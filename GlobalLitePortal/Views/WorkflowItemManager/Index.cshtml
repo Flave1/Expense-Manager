@@ -1,0 +1,59 @@
+﻿@using GlobalLitePortalHelper.APICore
+@model IEnumerable<PlugLitePortalHelper.APIObjs.WorkflowItemObj>
+ @{ 
+     var userList = (List<PluglexHelper.PortalObjs.UserItemObj>)Session["_usersList_"];
+     if(userList == null)
+     {
+         userList = new List<PluglexHelper.PortalObjs.UserItemObj>();
+     }
+ }
+@Html.Partial("_WaitLoader")
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+       
+            <div class="col-md-12 col-sm-12">
+                @foreach (var item in Model)
+                {
+                    <div class="row card">
+                        <div class="card-header">
+                            <div class="row">
+                                <strong>Current Stage :</strong> @{var enumName = (WorkflowStatus)item.CurrentStageId;} @enumName
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <strong>Last Stage Comment :</strong> @item.LastStageComment
+                            </div>
+                            <div class="row">
+                                @foreach (var user in userList.Where(m =>m.UserId == item.LastStageBy))
+                                {
+                                    <strong>Last Stage By :</strong> @user.FirstName  " " + user.LastName
+                                }
+
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="row">
+                                <strong>Status :</strong> @{var enumName2 = (WorkflowStatus)item.Status;} @enumName2
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    @*<button type="submit" class="btn btn-success">Add WorkflowItems</button>*@
+                </div>
+            </div> 
+        </div>
+
+    </div>
+</div>
+ 

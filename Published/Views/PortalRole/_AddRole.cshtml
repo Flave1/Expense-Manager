@@ -1,0 +1,204 @@
+﻿@model  PluglexHelper.PortalObjs.RoleObj
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+}
+
+@*<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Add Portal Role</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAddRole", data_parsley_validate = "" }))
+                {
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+
+                        <div class="form-group row">
+                            <label for="txtRoleName" class="col-sm-3 text-right control-label col-form-label">Role Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="txtRoleName" value="@Model.Name" name="txtRoleName" required="" data-parsley-maxlength="50" data-parsley-minlength="2" data-parsley-required-message="Role Name is required">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="chkStatus" class="col-sm-3 text-right control-label col-form-label">Active?</label>
+                            <div class="col-sm-9">
+                                <input type="checkbox" name="chkStatus" @(Model.StatusVal ? "checked=\"checked\"" : "") id="chkStatus">
+                            </div>
+                        </div>
+
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Add Role</button>
+                        </div>
+                    </div>
+                }
+
+            }
+        </div>
+
+    </div>
+</div>*@
+
+
+
+<!-- Change class .modal-sm to change the size of the modal -->
+<div class="modal-dialog modal-md" role="document">
+
+
+    <div class="modal-content">
+        <div class="modal-header unique-color text-white">
+            <span class="modal-title w-100" id="AddModalLabel">Add Item</span>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAddRole", data_parsley_validate = "" }))
+                {
+                    <div class="col-md-12 col-sm-12">
+                        <div id="dvError"></div>
+
+                        <div class="form-group row">
+                            <label for="txtRoleName" class="col-sm-3 text-right control-label col-form-label">Role Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control input-new" id="txtRoleName" value="@Model.Name" name="txtRoleName" required="" data-parsley-maxlength="50" data-parsley-minlength="2" data-parsley-required-message="Role Name is required">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="chkStatus" class="col-sm-3 text-right control-label col-form-label">Active?</label>
+                            <div class="col-sm-9 pt-2">
+                                <input type="checkbox" name="chkStatus" @(Model.StatusVal ? "checked=\"checked\"" : "") id="chkStatus">
+                            </div>
+                        </div>
+
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success btn-sm">Add Role</button>
+                        </div>
+                    </div>
+                }
+
+            }
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#frmAddRole').parsley().on('field:validated', function () {
+           var ok = $('.parsley-error').length === 0;
+           if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+
+        }).on('form:submit', function () {
+             ClearInlineError("dvError");
+
+
+            var roleName = $("#txtRoleName").val();
+            var chkStatus = $("#chkStatus").is(':checked');
+
+
+            if (roleName == null || roleName === "" || roleName.length < 2) {
+                InlineErrorMessage("Role Name must be at least 2 characters", "dvError");
+                return false;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddRoleRequest", "PortalRole")',
+                data: JSON.stringify({myRoleName: roleName, myRoleStatus: chkStatus }),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "Role was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+
+</script>

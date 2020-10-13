@@ -1,0 +1,218 @@
+﻿
+
+@model JetSetupPortalHelper.APIObjs.RegProductLookupObj
+@{
+    /**/
+
+    Layout = null;
+    var error = ViewBag.Error as string;
+    var hasError = !string.IsNullOrEmpty(error);
+
+    int[] Ids =(int[]) Session["ProductClientIds"];
+    string[] Names= (string[])
+        Session["ProductClientNames"];
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Add ProductLookup</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @if (hasError)
+            {
+                <div class="alert alert-danger" role="alert" id="customError">
+                    <h4>Error!</h4>
+                    <p>@Html.Raw(error)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+
+            }
+            else
+            {
+                using (Html.BeginForm(null, null, FormMethod.Post, new { id = "frmAdd", data_parsley_validate = "" }))
+                {
+                    <input type="hidden" class="form-control input-new hidden" id="ClientId" value="@Ids[0]" name="ClientId">
+                    <input type="hidden" class="form-control input-new " id="ProductId" value="@Ids[1]" name="ProductId">
+        <div class="col-md-12 col-sm-12">
+            <div id="dvError"></div>
+            <div class="form-group">
+                Client Name
+                <label class="form-control input-new"> @Names[0]</label>
+            </div>
+            <div class="form-group">
+                Product Name
+                <label class="form-control input-new">@Names[1]</label>
+            </div>
+            <div class="form-group">
+                Lookup Item
+                <select id="LookupItem" name="LookupItem" class="form-control" style="width: 100%"></select>
+            </div>
+            <div class="form-group">
+                Inclusion List
+                <input type="text" class="form-control" id="InclusionList" value="@Model.InclusionList" name="InclusionList" required="" data-parsley-maxlength="400" data-parsley-minlength="1" data-parsley-required-message="Inclusion List must be between 1 and 400 characters">>
+            </div>
+            <div class="form-group">
+                Exclusion List
+                <input type="text" class="form-control" id="ExclusionList" value="@Model.ExclusionList" name="ExclusionList" required="" data-parsley-maxlength="400" data-parsley-minlength="1" data-parsley-required-message="Exclusion List  must be between 1 and 400 characters">>
+            </div>
+
+            <div class="form-group">
+                Enabled
+                @Html.CheckBox("IsEnabled", Model.IsEnabled, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-success">Add ProductLookup</button>
+            </div>
+        </div>
+                }
+
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Content/assets/libs/jquery-validation/dist/jquery.validate.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        loadProducts();
+        loadClients();
+        loadLookupItems();
+        $('#frmAdd').parsley().on('field:validated', function() {
+            var ok = $('.parsley-error').length === 0;
+            if (!ok) {
+                InlineErrorMessage("Validation Error! Please check values inputted", "dvError");
+                return false;
+            }
+        }).on('form:submit', function () {
+            ClearInlineError("dvError");
+
+
+            var frm = $("#frmAdd");
+
+            if (frm == null) {
+                InlineErrorMessage("Invalid Tab Information", "dvError");
+                return false;
+            }
+
+
+            if (!frm.valid()) {
+                InlineErrorMessage("Validation Error! Please check all fields", "dvError");
+                return false;
+            }
+
+            //var actionUrl = frm.attr("action");
+            var params = frm.serializeArray();
+
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ProcessAddProductLookupRequest", "ProductLookup")',
+                data: params,
+                success: function (data) {
+                    if (!data.IsAuthenticated) {
+                        window.location.href = "@Url.Action("Login", "Portal")";
+                        return;
+                    }
+                    if (!data.IsSuccessful) {
+                        InlineErrorMessage(data.Error ? data.Error : "Unknown error occured. Please try again later!", "dvError");
+                       swal({
+                            title: "",
+                            text: data.Error ? data.Error : "Unknown error occured. Please try again later!",
+                            type: "error",
+                            showCancelButton: false,
+                            confirmButtonText: "Close",
+                            closeOnConfirm: true,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+
+                            }
+                        });
+
+                    } else {
+                        $('#dvModal').modal('hide');
+                        swal({
+                            title: "",
+                            text: "ProductLookup was added successfully",
+                            type: "success",
+                            showCancelButton: false,
+                            confirmButtonText: "Ok",
+                            closeOnConfirm: false,
+                        }, function (isConfirm) {
+                            if (isConfirm) {
+                               window.location.reload();
+                            }
+                        });
+                    }
+                },
+                complete: function () {
+                    $(".loader").hide();
+                    $("#loadingMessage").html("");
+                }
+            });
+            return false;
+        });
+
+
+
+    });
+
+    
+    function loadClients() {
+        $.getJSON("@Url.Action("LoadClients", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.ClientId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#ClientId").html(items);
+            });
+    }
+    function loadProducts() {
+        $.getJSON("@Url.Action("LoadProducts", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.ProductId') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#ProductId").html(items);
+            });
+    }
+    function loadLookupItems() {
+        $.getJSON("@Url.Action("LoadLookupItem", "ODataProvider")",
+            function(data) {
+                var items = "";
+                $.each(data,
+                    function(i, item) {
+                        if (parseInt('@Model.LookupItem') === item.Id) {
+                            items += "<option value='" + item.Id + "' selected='selected'>" + item.Name + "</option>";
+                        } else {
+                            items += "<option value='" + item.Id + "'>" + item.Name + "</option>";
+                        }
+
+                    });
+                $("#LookupItem").html(items);
+            });
+    }
+</script>

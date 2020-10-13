@@ -1,0 +1,19 @@
+﻿@using PlugLitePortalHelper.APIObjs
+@{
+    ViewBag.Title = "Voucher";
+}
+
+<h2>Voucher</h2>
+@using (Html.BeginForm("Voucher", "Voucher", FormMethod.Post, new { @enctype = "multipart/form-data" }))
+{
+    <div class="row">
+        <input type="text" class="col-4" name="VoucherNumber" placeholder="Voucher Number" id="fileToUpload">
+        <input type="file" class="col-4" name="ImageFile" id="fileToUpload">
+        <input type="submit" value="Upload Image" name="submit">
+    </div>
+
+}
+
+
+<a href="@Url.Action("GetVoucherFromDirectory","Voucher", new { voucherNo = "QWERTYUI.jpg"})">content</a>
+ 
